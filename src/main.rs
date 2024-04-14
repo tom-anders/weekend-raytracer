@@ -1,15 +1,20 @@
+use hittable::Hittable;
 use ray::Ray;
+use sphere::Sphere;
 use vec3::dot;
 
 use crate::{color::Color, vec3::Vec3};
 
 mod color;
+mod hittable;
 mod ray;
+mod sphere;
 mod vec3;
 
 fn ray_color(r: &Ray) -> Color {
-    if let Some(t) = hit_sphere(&Vec3::new(0, 0, -1), 0.5, r) {
-        let surface_normal = (r.at(t) - Vec3::new(0, 0, -1)).normalized();
+    let sphere = Sphere::new(Vec3::new(0, 0, -1), 0.5);
+    if let Some(hit_record) = sphere.hit(r, &(0.0..=f64::MAX)) {
+        let surface_normal = (r.at(hit_record.t) - sphere.center()).normalized();
         return Color::from_rgb_float(
             0.5 * Vec3::new(
                 surface_normal.x + 1.0,
@@ -21,16 +26,6 @@ fn ray_color(r: &Ray) -> Color {
     let unit_direction = r.direction().normalized();
     let a = 0.5 * (unit_direction.y + 1.0);
     Color::from_rgb_float((1.0 - a) * Vec3::new(1.0, 1.0, 1.0) + a * Vec3::new(0.5, 0.7, 1.0))
-}
-
-fn hit_sphere(center: &Vec3, radius: f64, r: &Ray) -> Option<f64> {
-    let oc = *center - *r.origin();
-    let a = r.direction().length_squared();
-    let h = dot(r.direction(), &oc);
-    let c = oc.length_squared() - radius.powi(2);
-    let discriminant = h * h - a * c;
-
-    (discriminant >= 0.0).then_some((h - discriminant.sqrt()) / a)
 }
 
 fn main() {
