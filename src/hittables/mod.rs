@@ -1,9 +1,12 @@
 use std::ops::RangeInclusive;
 
 use crate::{
-    ray::Ray,
-    vec3::{dot, Vec3},
+    math::ray::Ray,
+    math::vec3::{dot, Vec3},
 };
+
+pub mod sphere;
+pub use sphere::Sphere;
 
 #[derive(Debug, Clone)]
 pub struct HitRecord {

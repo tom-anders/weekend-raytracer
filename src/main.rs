@@ -1,14 +1,11 @@
-use hittable::Hittable;
-use ray::Ray;
-use sphere::Sphere;
+use hittables::{Sphere, Hittable};
+use math::{Ray, Vec3};
 
-use crate::{color::Color, vec3::Vec3};
+use color::Color;
 
 mod color;
-mod hittable;
-mod ray;
-mod sphere;
-mod vec3;
+mod hittables;
+mod math;
 
 fn ray_color(r: &Ray) -> Color {
     let sphere = Sphere::new(Vec3::new(0, 0, -1), 0.5);

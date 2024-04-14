@@ -1,9 +1,9 @@
 use std::ops::RangeInclusive;
 
 use crate::{
-    hittable::{HitRecord, Hittable},
-    ray::Ray,
-    vec3::{dot, Vec3},
+    hittables::{HitRecord, Hittable},
+    math::ray::Ray,
+    math::vec3::{dot, Vec3},
 };
 
 #[derive(Debug, Clone, derive_more::Constructor)]
