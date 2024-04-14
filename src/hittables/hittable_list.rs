@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use crate::math;
+use crate::math::{self, Range};
 
 use super::{HitRecord, Hittable};
 
@@ -20,7 +20,7 @@ impl HittableList {
 }
 
 impl Hittable for HittableList {
-    fn hit(&self, r: &math::Ray, ray_bounds: &RangeInclusive<f64>) -> Option<HitRecord> {
+    fn hit(&self, r: &math::Ray, ray_bounds: &Range) -> Option<HitRecord> {
         self.objects
             .iter()
             .flat_map(|o| o.hit(r, ray_bounds))

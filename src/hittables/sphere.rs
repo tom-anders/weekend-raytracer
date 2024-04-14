@@ -1,8 +1,6 @@
-use std::ops::RangeInclusive;
-
 use crate::{
     hittables::{HitRecord, Hittable},
-    math::ray::Ray,
+    math::{ray::Ray, Range},
     math::vec3::{dot, Vec3},
 };
 
@@ -19,7 +17,7 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, r: &Ray, ray_bounds: &RangeInclusive<f64>) -> Option<HitRecord> {
+    fn hit(&self, r: &Ray, ray_bounds: &Range) -> Option<HitRecord> {
         let oc = self.center - *r.origin();
         let a = r.direction().length_squared();
         let h = dot(r.direction(), &oc);
@@ -32,9 +30,9 @@ impl Hittable for Sphere {
         let sqrtd = discriminant.sqrt();
 
         let mut root = (h - sqrtd) / a;
-        if !ray_bounds.contains(&root) {
+        if !ray_bounds.surrounds(root) {
             root = (h + sqrtd) / a;
-            if !ray_bounds.contains(&root) {
+            if !ray_bounds.surrounds(root) {
                 return None;
             }
         }

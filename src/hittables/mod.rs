@@ -1,8 +1,6 @@
-use std::ops::RangeInclusive;
-
 use crate::{
     math::ray::Ray,
-    math::vec3::{dot, Vec3},
+    math::{vec3::{dot, Vec3}, Range},
 };
 
 pub mod sphere;
@@ -48,5 +46,5 @@ impl HitRecord {
 }
 
 pub trait Hittable : std::fmt::Debug {
-    fn hit(&self, r: &Ray, ray_bounds: &RangeInclusive<f64>) -> Option<HitRecord>;
+    fn hit(&self, r: &Ray, ray_bounds: &Range) -> Option<HitRecord>;
 }

@@ -10,7 +10,7 @@ mod hittables;
 mod math;
 
 fn ray_color(r: &Ray, world: &impl Hittable) -> Color {
-    if let Some(hit_record) = world.hit(r, &(0.0..=f64::INFINITY)) {
+    if let Some(hit_record) = world.hit(r, &(0.0..=f64::INFINITY).into()) {
         return Color::from_rgb_float(0.5 * (hit_record.normal() + Vec3::new(1, 1, 1)));
     }
     let unit_direction = r.direction().normalized();
