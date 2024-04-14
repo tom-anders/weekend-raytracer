@@ -47,6 +47,6 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable {
+pub trait Hittable : std::fmt::Debug {
     fn hit(&self, r: &Ray, ray_bounds: &RangeInclusive<f64>) -> Option<HitRecord>;
 }

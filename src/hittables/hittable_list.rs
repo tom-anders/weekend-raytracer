@@ -4,25 +4,18 @@ use crate::math;
 
 use super::{HitRecord, Hittable};
 
+#[derive(Debug, Default)]
 pub struct HittableList {
     objects: Vec<Box<dyn Hittable>>,
 }
 
 impl HittableList {
-    fn push(&mut self, hittable: Box<dyn Hittable>) {
+    pub fn push(&mut self, hittable: Box<dyn Hittable>) {
         self.objects.push(hittable);
     }
 
-    fn clear(&mut self) {
+    pub fn clear(&mut self) {
         self.objects.clear();
-    }
-}
-
-impl FromIterator<Box<dyn Hittable>> for HittableList {
-    fn from_iter<T: IntoIterator<Item = Box<dyn Hittable>>>(iter: T) -> Self {
-        Self {
-            objects: iter.into_iter().collect(),
-        }
     }
 }
 

@@ -3,13 +3,14 @@ use math::{Ray, Vec3};
 
 use color::Color;
 
+use crate::hittables::HittableList;
+
 mod color;
 mod hittables;
 mod math;
 
-fn ray_color(r: &Ray) -> Color {
-    let sphere = Sphere::new(Vec3::new(0, 0, -1), 0.5);
-    if let Some(hit_record) = sphere.hit(r, &(0.0..=f64::INFINITY)) {
+fn ray_color(r: &Ray, world: &impl Hittable) -> Color {
+    if let Some(hit_record) = world.hit(r, &(0.0..=f64::INFINITY)) {
         return Color::from_rgb_float(0.5 * (hit_record.normal() + Vec3::new(1, 1, 1)));
     }
     let unit_direction = r.direction().normalized();
@@ -22,6 +23,11 @@ fn main() {
     let image_width = 400;
 
     let image_height = ((image_width as f64 / aspect_ratio) as i32).max(1);
+
+    // World
+    let mut world = HittableList::default();
+    world.push(Box::new(Sphere::new(Vec3::new(0, 0, -1), 0.5)));
+    world.push(Box::new(Sphere::new(Vec3::new(0, -100.5, -1), 100.0)));
 
     // Camera
     let focal_length = 1.0;
@@ -49,7 +55,7 @@ fn main() {
             let pixel_center = pixel00_loc + i * pixel_delta_u + j * pixel_delta_v;
             let ray_direction = pixel_center - camara_center;
             let ray = Ray::new(camara_center, ray_direction);
-            let color = ray_color(&ray);
+            let color = ray_color(&ray, &world);
             println!("{color}");
         }
     }
