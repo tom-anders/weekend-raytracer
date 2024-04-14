@@ -3,11 +3,11 @@ use crate::vec3::Vec3;
 pub struct Color(Vec3);
 
 impl Color {
-    pub fn from_rgb_float(r: f64, g: f64, b: f64) -> Self {
+    pub fn from_rgb_float(v: Vec3) -> Self {
         debug_assert!(
-            (0.0..=1.0).contains(&r) && (0.0..=1.0).contains(&g) && (0.0..=1.0).contains(&b)
+            (0.0..=1.0).contains(&v.x) && (0.0..=1.0).contains(&v.y) && (0.0..=1.0).contains(&v.z)
         );
-        Color(Vec3::new(r, g, b))
+        Self(v)
     }
 
     pub fn red(&self) -> u8 {
