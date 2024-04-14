@@ -8,6 +8,9 @@ use crate::{
 pub mod sphere;
 pub use sphere::Sphere;
 
+pub mod hittable_list;
+pub use hittable_list::HittableList;
+
 #[derive(Debug, Clone)]
 pub struct HitRecord {
     p: Vec3,
