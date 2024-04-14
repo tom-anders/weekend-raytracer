@@ -25,12 +25,12 @@ fn ray_color(r: &Ray) -> Color {
 
 fn hit_sphere(center: &Vec3, radius: f64, r: &Ray) -> Option<f64> {
     let oc = *center - *r.origin();
-    let a = dot(r.direction(), r.direction());
-    let b = -2.0 * dot(r.direction(), &oc);
-    let c = dot(&oc, &oc) - radius * radius;
-    let discriminant = b * b - 4.0 * a * c;
+    let a = r.direction().length_squared();
+    let h = dot(r.direction(), &oc);
+    let c = oc.length_squared() - radius.powi(2);
+    let discriminant = h * h - a * c;
 
-    (discriminant >= 0.0).then_some((-b - discriminant.sqrt()) / (2.0 * a))
+    (discriminant >= 0.0).then_some((h - discriminant.sqrt()) / a)
 }
 
 fn main() {
