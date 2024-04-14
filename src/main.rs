@@ -1,7 +1,6 @@
 use hittable::Hittable;
 use ray::Ray;
 use sphere::Sphere;
-use vec3::dot;
 
 use crate::{color::Color, vec3::Vec3};
 
@@ -13,15 +12,8 @@ mod vec3;
 
 fn ray_color(r: &Ray) -> Color {
     let sphere = Sphere::new(Vec3::new(0, 0, -1), 0.5);
-    if let Some(hit_record) = sphere.hit(r, &(0.0..=f64::MAX)) {
-        let surface_normal = (r.at(hit_record.t) - sphere.center()).normalized();
-        return Color::from_rgb_float(
-            0.5 * Vec3::new(
-                surface_normal.x + 1.0,
-                surface_normal.y + 1.0,
-                surface_normal.z + 1.0,
-            ),
-        );
+    if let Some(hit_record) = sphere.hit(r, &(0.0..=f64::INFINITY)) {
+        return Color::from_rgb_float(0.5 * (hit_record.normal() + Vec3::new(1, 1, 1)));
     }
     let unit_direction = r.direction().normalized();
     let a = 0.5 * (unit_direction.y + 1.0);
