@@ -8,21 +8,29 @@ mod ray;
 mod vec3;
 
 fn ray_color(r: &Ray) -> Color {
-    if hit_sphere(&Vec3::new(0, 0, -1), 0.5, r) {
-        return Color::from_rgb_float(Vec3::new(1, 0, 0));
+    if let Some(t) = hit_sphere(&Vec3::new(0, 0, -1), 0.5, r) {
+        let surface_normal = (r.at(t) - Vec3::new(0, 0, -1)).normalized();
+        return Color::from_rgb_float(
+            0.5 * Vec3::new(
+                surface_normal.x + 1.0,
+                surface_normal.y + 1.0,
+                surface_normal.z + 1.0,
+            ),
+        );
     }
     let unit_direction = r.direction().normalized();
     let a = 0.5 * (unit_direction.y + 1.0);
     Color::from_rgb_float((1.0 - a) * Vec3::new(1.0, 1.0, 1.0) + a * Vec3::new(0.5, 0.7, 1.0))
 }
 
-fn hit_sphere(center: &Vec3, radius: f64, r: &Ray) -> bool {
+fn hit_sphere(center: &Vec3, radius: f64, r: &Ray) -> Option<f64> {
     let oc = *center - *r.origin();
     let a = dot(r.direction(), r.direction());
     let b = -2.0 * dot(r.direction(), &oc);
     let c = dot(&oc, &oc) - radius * radius;
     let discriminant = b * b - 4.0 * a * c;
-    discriminant >= 0.0
+
+    (discriminant >= 0.0).then_some((-b - discriminant.sqrt()) / (2.0 * a))
 }
 
 fn main() {
