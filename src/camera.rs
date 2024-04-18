@@ -17,10 +17,11 @@ pub struct Camera {
     pixel_delta_v: Vec3,
     samples_per_pixel: usize,
     pixel_samples_scale: f64,
+    max_depth: i32,
 }
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: usize, samples_per_pixel: usize) -> Self {
+    pub fn new(aspect_ratio: f64, image_width: usize, samples_per_pixel: usize, max_depth: i32) -> Self {
         let image_height = ((image_width as f64 / aspect_ratio) as usize).max(1);
 
         let focal_length = 1.0;
@@ -47,6 +48,7 @@ impl Camera {
             pixel_delta_v: viewport_v / image_height as f64,
             samples_per_pixel,
             pixel_samples_scale: 1.0 / samples_per_pixel as f64,
+            max_depth,
         }
     }
 
@@ -65,7 +67,7 @@ impl Camera {
                         self.pixel_samples_scale
                             * std::iter::repeat_with(|| self.get_ray(i, j))
                                 .take(self.samples_per_pixel)
-                                .map(|ray| Self::ray_color(&ray, world))
+                                .map(|ray| Self::ray_color(&ray, self.max_depth, world))
                                 .sum::<Vec3>(),
                     )
                 })
@@ -96,10 +98,13 @@ impl Camera {
         Vec3::new(rng.gen_range(-0.5..=0.5), rng.gen_range(-0.5..=0.5), 0.0)
     }
 
-    fn ray_color(r: &Ray, world: &impl Hittable) -> Vec3 {
+    fn ray_color(r: &Ray, depth: i32, world: &impl Hittable) -> Vec3 {
+        if depth <=0 {
+            return Vec3::zero();
+        }
         if let Some(hit_record) = world.hit(r, &(0.0..=f64::INFINITY).into()) {
             let direction = Vec3::random_on_hemisphere(&hit_record.normal());
-            return 0.5 * Self::ray_color(&Ray::new(hit_record.p(), direction), world);
+            return 0.5 * Self::ray_color(&Ray::new(hit_record.p(), direction), depth - 1, world);
         }
         let unit_direction = r.direction().normalized();
         let a = 0.5 * (unit_direction.y + 1.0);
