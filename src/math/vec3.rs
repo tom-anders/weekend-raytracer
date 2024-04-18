@@ -51,6 +51,12 @@ impl std::ops::Add for Vec3 {
     }
 }
 
+impl std::iter::Sum for Vec3 {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Vec3::zero(), |acc, v| acc + v)
+    }
+}
+
 impl std::ops::Sub for Vec3 {
     type Output = Vec3;
 
@@ -75,7 +81,7 @@ impl std::ops::Mul<Vec3> for f64 {
     }
 }
 
-impl std::ops::Mul<Vec3> for i32 {
+impl std::ops::Mul<Vec3> for usize {
     type Output = Vec3;
 
     fn mul(self, rhs: Vec3) -> Self::Output {
