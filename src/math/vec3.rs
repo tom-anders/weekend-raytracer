@@ -1,3 +1,5 @@
+use rand::{distributions::uniform::SampleRange, Rng};
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Vec3 {
     pub x: f64,
@@ -16,6 +18,31 @@ impl Vec3 {
 
     pub fn zero() -> Self {
         Self::new(0.0, 0.0, 0.0)
+    }
+
+    pub fn random(r: impl SampleRange<f64> + Clone) -> Self {
+        let mut rng = rand::thread_rng();
+        Self::new(
+            rng.gen_range(r.clone()),
+            rng.gen_range(r.clone()),
+            rng.gen_range(r),
+        )
+    }
+
+    pub fn random_unit_vector() -> Self {
+        std::iter::repeat_with(|| Self::random(-1.0..1.0))
+            .find(|p| p.length_squared() < 1.0)
+            .expect("The iterator is infinite, so we either have bad luck forever or eventually find a point")
+            .normalized()
+    }
+
+    pub fn random_on_hemisphere(normal: &Vec3) -> Vec3 {
+        let on_unit_sphere = Self::random_unit_vector();
+        if dot(&on_unit_sphere, normal) > 0.0 {
+            on_unit_sphere
+        } else {
+            -on_unit_sphere
+        }
     }
 
     pub fn length(&self) -> f64 {

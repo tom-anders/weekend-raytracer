@@ -62,7 +62,7 @@ impl Camera {
                         * std::iter::repeat_with(|| self.get_ray(i, j))
                             .take(self.samples_per_pixel)
                             .map(|ray| Self::ray_color(&ray, world))
-                            .sum::<Vec3>()
+                            .sum::<Vec3>(),
                 );
 
                 println!("{color}");
@@ -91,7 +91,8 @@ impl Camera {
 
     fn ray_color(r: &Ray, world: &impl Hittable) -> Vec3 {
         if let Some(hit_record) = world.hit(r, &(0.0..=f64::INFINITY).into()) {
-            return 0.5 * (hit_record.normal() + Vec3::new(1, 1, 1));
+            let direction = Vec3::random_on_hemisphere(&hit_record.normal());
+            return 0.5 * Self::ray_color(&Ray::new(hit_record.p(), direction), world);
         }
         let unit_direction = r.direction().normalized();
         let a = 0.5 * (unit_direction.y + 1.0);
