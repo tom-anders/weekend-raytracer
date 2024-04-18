@@ -45,6 +45,6 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable : std::fmt::Debug {
+pub trait Hittable : std::fmt::Debug + Sync {
     fn hit(&self, r: &Ray, ray_bounds: &Range) -> Option<HitRecord>;
 }

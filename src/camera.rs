@@ -1,4 +1,5 @@
 use rand::Rng;
+use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 
 use crate::{
     color::Color,
@@ -54,17 +55,23 @@ impl Camera {
         println!("{} {}", self.image_width, self.image_height);
         println!("255");
 
+        let mut colors = Vec::with_capacity(self.image_width);
         for j in 0..self.image_height {
             eprint!("\rScanlines remaining: {} ", self.image_height - j);
-            for i in 0..self.image_width {
-                let color = Color::from_rgb_float(
-                    self.pixel_samples_scale
-                        * std::iter::repeat_with(|| self.get_ray(i, j))
-                            .take(self.samples_per_pixel)
-                            .map(|ray| Self::ray_color(&ray, world))
-                            .sum::<Vec3>(),
-                );
+            (0..self.image_width)
+                .into_par_iter()
+                .map(|i| {
+                    Color::from_rgb_float(
+                        self.pixel_samples_scale
+                            * std::iter::repeat_with(|| self.get_ray(i, j))
+                                .take(self.samples_per_pixel)
+                                .map(|ray| Self::ray_color(&ray, world))
+                                .sum::<Vec3>(),
+                    )
+                })
+                .collect_into_vec(&mut colors);
 
+            for color in &colors {
                 println!("{color}");
             }
         }
