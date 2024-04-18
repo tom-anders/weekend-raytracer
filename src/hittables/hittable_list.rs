@@ -1,5 +1,3 @@
-use std::ops::RangeInclusive;
-
 use crate::math::{self, Range};
 
 use super::{HitRecord, Hittable};

@@ -1,7 +1,5 @@
-use hittables::{Sphere, Hittable};
-use math::{Ray, Vec3};
-
-use color::Color;
+use hittables::Sphere;
+use math::Vec3;
 
 use crate::{camera::Camera, hittables::HittableList};
 
