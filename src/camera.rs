@@ -17,6 +17,8 @@ pub struct Camera {
     image_width: usize,
     #[builder(setter, default = "10")]
     samples_per_pixel: usize,
+    #[builder(setter, default = "90.0")]
+    vfov_degrees: f64,
     #[builder(setter, default = "10")]
     max_depth: i32,
     image_height: usize,
@@ -34,7 +36,9 @@ impl CameraBuilder {
         camera.image_height = ((camera.image_width as f64 / camera.aspect_ratio) as usize).max(1);
 
         let focal_length = 1.0;
-        let viewport_height = 2.0;
+        let theta = camera.vfov_degrees.to_radians();
+        let h = f64::tan(theta / 2.0);
+        let viewport_height = 2.0 * h * focal_length;
         let viewport_width =
             viewport_height * (camera.image_width as f64 / camera.image_height as f64);
 
