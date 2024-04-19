@@ -10,3 +10,7 @@ derive_builder = "0.20.0"
 derive_more = "0.99.17"
 rand = "0.8.5"
 rayon = "1.10.0"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
