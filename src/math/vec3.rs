@@ -1,6 +1,6 @@
 use rand::{distributions::uniform::SampleRange, Rng};
 
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,

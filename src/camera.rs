@@ -7,49 +7,57 @@ use crate::{
     math::{Ray, Vec3},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, derive_builder::Builder)]
+#[builder(build_fn(private, name = "build_private"))]
+#[builder(setter(skip))]
 pub struct Camera {
+    #[builder(setter, default = "1.0")]
+    aspect_ratio: f64,
+    #[builder(setter, default = "100")]
     image_width: usize,
+    #[builder(setter, default = "10")]
+    samples_per_pixel: usize,
+    #[builder(setter, default = "10")]
+    max_depth: i32,
     image_height: usize,
     center: Vec3,
     pixel00_loc: Vec3,
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
-    samples_per_pixel: usize,
     pixel_samples_scale: f64,
-    max_depth: i32,
 }
 
-impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: usize, samples_per_pixel: usize, max_depth: i32) -> Self {
-        let image_height = ((image_width as f64 / aspect_ratio) as usize).max(1);
+impl CameraBuilder {
+    pub fn build(&self) -> Camera {
+        let mut camera = self.build_private().unwrap();
+
+        camera.image_height = ((camera.image_width as f64 / camera.aspect_ratio) as usize).max(1);
 
         let focal_length = 1.0;
         let viewport_height = 2.0;
-        let viewport_width = viewport_height * (image_width as f64 / image_height as f64);
-        let center = Vec3::zero();
+        let viewport_width =
+            viewport_height * (camera.image_width as f64 / camera.image_height as f64);
 
         let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
         let viewport_v = Vec3::new(0.0, -viewport_height, 0.0);
 
         let viewport_upper_left =
-            center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+            camera.center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
 
-        let pixel_delta_u = viewport_u / image_width as f64;
-        let pixel_delta_v = viewport_v / image_height as f64;
-        let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+        camera.pixel_delta_u = viewport_u / camera.image_width as f64;
+        camera.pixel_delta_v = viewport_v / camera.image_height as f64;
+        camera.pixel00_loc =
+            viewport_upper_left + 0.5 * (camera.pixel_delta_u + camera.pixel_delta_v);
 
-        Self {
-            image_width,
-            image_height,
-            center,
-            pixel00_loc,
-            pixel_delta_u: viewport_u / image_width as f64,
-            pixel_delta_v: viewport_v / image_height as f64,
-            samples_per_pixel,
-            pixel_samples_scale: 1.0 / samples_per_pixel as f64,
-            max_depth,
-        }
+        camera.pixel_samples_scale = 1.0 / camera.samples_per_pixel as f64;
+
+        camera
+    }
+}
+
+impl Camera {
+    pub fn builder() -> CameraBuilder {
+        CameraBuilder::default()
     }
 
     pub fn render(&self, world: &impl Hittable) {
@@ -99,7 +107,7 @@ impl Camera {
     }
 
     fn ray_color(r: &Ray, depth: i32, world: &impl Hittable) -> Vec3 {
-        if depth <=0 {
+        if depth <= 0 {
             return Vec3::zero();
         }
         if let Some(hit_record) = world.hit(r, &(0.001..=f64::INFINITY).into()) {
