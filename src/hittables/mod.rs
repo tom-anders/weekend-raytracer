@@ -48,6 +48,10 @@ impl<'a> HitRecord<'a> {
     pub fn material(&self) -> &Material {
         self.material
     }
+
+    pub fn front_face(&self) -> bool {
+        self.front_face
+    }
 }
 
 #[derive(Debug, Clone, derive_more::From)]

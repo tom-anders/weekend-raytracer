@@ -12,6 +12,14 @@ impl Color {
         Self(v)
     }
 
+    pub fn black() -> Self {
+        Self(Vec3::zero())
+    }
+
+    pub fn white() -> Self {
+        Self(Vec3::new(1, 1, 1))
+    }
+
     fn red(&self) -> u8 {
         (linear_to_gamma(self.0.x).clamp(0.0, 0.999) * 256.0) as u8
     }

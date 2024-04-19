@@ -71,6 +71,13 @@ pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
     *v - 2.0 * dot(v, n) * *n
 }
 
+pub fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: f64) -> Vec3 {
+    let cos_theta = dot(&-uv, n).min(1.0);
+    let r_out_perp = etai_over_etat * (*uv + cos_theta * n);
+    let r_out_parallel = -(1.0 - r_out_perp.length_squared()).abs().sqrt() * n;
+    r_out_perp + r_out_parallel
+}
+
 pub fn cross(lhs: &Vec3, rhs: &Vec3) -> Vec3 {
     Vec3::new(
         lhs.y * rhs.z - lhs.z * rhs.y,
@@ -114,6 +121,14 @@ impl std::ops::Mul<Vec3> for f64 {
 
     fn mul(self, rhs: Vec3) -> Self::Output {
         Vec3::new(self * rhs.x, self * rhs.y, self * rhs.z)
+    }
+}
+
+impl std::ops::Mul<&Vec3> for f64 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: &Vec3) -> Self::Output {
+        self * (*rhs)
     }
 }
 
@@ -162,5 +177,13 @@ impl std::ops::Neg for Vec3 {
 
     fn neg(self) -> Self::Output {
         Vec3::new(-self.x, -self.y, -self.z)
+    }
+}
+
+impl std::ops::Neg for &Vec3 {
+    type Output = Vec3;
+
+    fn neg(self) -> Self::Output {
+        -*self
     }
 }
