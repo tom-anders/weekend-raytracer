@@ -19,9 +19,6 @@ pub struct Camera {
     samples_per_pixel: usize,
     #[builder(setter, default = "90.0")]
     vfov_degrees: f64,
-    u: Vec3,
-    v: Vec3,
-    w: Vec3,
     #[builder(setter, default = "10")]
     max_depth: i32,
     #[builder(setter, default = "Vec3::new(0, 0, -1)")]
