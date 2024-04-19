@@ -43,6 +43,8 @@ fn main() {
         .look_from(Vec3::new(-2, 2, 1))
         .look_at(Vec3::new(0, 0, -1))
         .v_up(Vec3::new(0, 1, 0))
+        .defocus_angle(Some(10.0))
+        .focus_dist(3.4)
         .build();
 
     camera.render(&world);

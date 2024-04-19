@@ -1,4 +1,4 @@
-use rand::{distributions::uniform::SampleRange, Rng};
+use rand::{distributions::uniform::SampleRange, thread_rng, Rng};
 
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub struct Vec3 {
@@ -48,6 +48,13 @@ impl Vec3 {
         } else {
             -on_unit_sphere
         }
+    }
+
+    pub fn random_in_unit_disk() -> Vec3 {
+        let mut rng = thread_rng();
+        std::iter::repeat_with(|| Vec3::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0), 0.0))
+            .find(|p| p.length_squared() < 1.0)
+            .expect("The iterator is infinite, so we either have bad luck forever or eventually find a point")
     }
 
     pub fn length(&self) -> f64 {
