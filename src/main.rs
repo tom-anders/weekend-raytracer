@@ -11,8 +11,8 @@ mod math;
 fn main() {
     // World
     let mut world = HittableList::default();
-    world.push(Box::new(Sphere::new(Vec3::new(0, 0, -1), 0.5)));
-    world.push(Box::new(Sphere::new(Vec3::new(0, -100.5, -1), 100.0)));
+    world.push(Sphere::new(Vec3::new(0, 0, -1), 0.5));
+    world.push(Sphere::new(Vec3::new(0, -100.5, -1), 100.0));
 
     let camera = Camera::builder()
         .aspect_ratio(16.0 / 9.0)

@@ -3,7 +3,7 @@ use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterato
 
 use crate::{
     color::Color,
-    hittables::Hittable,
+    hittables::Hit,
     math::{Ray, Vec3},
 };
 
@@ -60,7 +60,7 @@ impl Camera {
         CameraBuilder::default()
     }
 
-    pub fn render(&self, world: &impl Hittable) {
+    pub fn render(&self, world: &impl Hit) {
         println!("P3");
         println!("{} {}", self.image_width, self.image_height);
         println!("255");
@@ -106,7 +106,7 @@ impl Camera {
         Vec3::new(rng.gen_range(-0.5..=0.5), rng.gen_range(-0.5..=0.5), 0.0)
     }
 
-    fn ray_color(r: &Ray, depth: i32, world: &impl Hittable) -> Vec3 {
+    fn ray_color(r: &Ray, depth: i32, world: &impl Hit) -> Vec3 {
         if depth <= 0 {
             return Vec3::zero();
         }

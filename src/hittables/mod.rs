@@ -45,6 +45,21 @@ impl HitRecord {
     }
 }
 
-pub trait Hittable : std::fmt::Debug + Sync {
+#[derive(Debug, Clone, derive_more::From)]
+pub enum Hittable {
+    Sphere(Sphere),
+    List(HittableList),
+}
+
+pub trait Hit : Sync {
     fn hit(&self, r: &Ray, ray_bounds: &Range) -> Option<HitRecord>;
+}
+
+impl Hittable {
+    fn hit(&self, r: &Ray, ray_bounds: &Range) -> Option<HitRecord> {
+        match self {
+            Hittable::Sphere(s) => s.hit(r, ray_bounds),
+            Hittable::List(l) => l.hit(r, ray_bounds),
+        }
+    }
 }
