@@ -39,7 +39,10 @@ fn main() {
         .image_width(400)
         .samples_per_pixel(100)
         .max_depth(50)
-        .vfov_degrees(90.0)
+        .vfov_degrees(20.0)
+        .look_from(Vec3::new(-2, 2, 1))
+        .look_at(Vec3::new(0, 0, -1))
+        .v_up(Vec3::new(0, 1, 0))
         .build();
 
     camera.render(&world);

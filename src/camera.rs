@@ -4,7 +4,7 @@ use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterato
 use crate::{
     color::Color,
     hittables::Hit,
-    math::{Ray, Vec3},
+    math::{cross, Ray, Vec3},
 };
 
 #[derive(Debug, Clone, derive_builder::Builder)]
@@ -19,9 +19,17 @@ pub struct Camera {
     samples_per_pixel: usize,
     #[builder(setter, default = "90.0")]
     vfov_degrees: f64,
+    u: Vec3,
+    v: Vec3,
+    w: Vec3,
     #[builder(setter, default = "10")]
     max_depth: i32,
+    #[builder(setter, default = "Vec3::new(0, 0, -1)")]
+    look_at: Vec3,
+    #[builder(setter, default = "Vec3::new(0, 1, 0)")]
+    v_up: Vec3,
     image_height: usize,
+    #[builder(setter(name = "look_from"), default = "Vec3::zero()")]
     center: Vec3,
     pixel00_loc: Vec3,
     pixel_delta_u: Vec3,
@@ -35,21 +43,26 @@ impl CameraBuilder {
 
         camera.image_height = ((camera.image_width as f64 / camera.aspect_ratio) as usize).max(1);
 
-        let focal_length = 1.0;
+        let focal_length = (camera.center - camera.look_at).length();
         let theta = camera.vfov_degrees.to_radians();
         let h = f64::tan(theta / 2.0);
         let viewport_height = 2.0 * h * focal_length;
         let viewport_width =
             viewport_height * (camera.image_width as f64 / camera.image_height as f64);
 
-        let viewport_u = Vec3::new(viewport_width, 0.0, 0.0);
-        let viewport_v = Vec3::new(0.0, -viewport_height, 0.0);
+        let w = (camera.center - camera.look_at).normalized();
+        let u = cross(&camera.v_up, &w).normalized();
+        let v = cross(&w, &u);
 
-        let viewport_upper_left =
-            camera.center - Vec3::new(0.0, 0.0, focal_length) - viewport_u / 2.0 - viewport_v / 2.0;
+        let viewport_u = viewport_width * u; // Vector across viewport horizontal edge
+        let viewport_v = viewport_height * (-v); // Vector down viewport vertical edge
 
         camera.pixel_delta_u = viewport_u / camera.image_width as f64;
         camera.pixel_delta_v = viewport_v / camera.image_height as f64;
+
+        let viewport_upper_left =
+            camera.center - focal_length * w - viewport_u / 2.0 - viewport_v / 2.0;
+
         camera.pixel00_loc =
             viewport_upper_left + 0.5 * (camera.pixel_delta_u + camera.pixel_delta_v);
 
