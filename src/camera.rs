@@ -111,8 +111,11 @@ impl Camera {
             return Vec3::zero();
         }
         if let Some(hit_record) = world.hit(r, &(0.001..=f64::INFINITY).into()) {
-            let direction = hit_record.normal() + Vec3::random_unit_vector();
-            return 0.5 * Self::ray_color(&Ray::new(hit_record.p(), direction), depth - 1, world);
+            return if let Some(scattered) = hit_record.material().scatter(r, &hit_record) {
+                scattered.attenuation.0 * Self::ray_color(&scattered.ray, depth - 1, world)
+            } else {
+                Vec3::zero()
+            }
         }
         let unit_direction = r.direction().normalized();
         let a = 0.5 * (unit_direction.y + 1.0);

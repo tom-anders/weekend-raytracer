@@ -1,4 +1,6 @@
+use color::Color;
 use hittables::Sphere;
+use material::{Lambertian, Material, Metal};
 use math::Vec3;
 
 use crate::{camera::Camera, hittables::HittableList};
@@ -6,13 +8,29 @@ use crate::{camera::Camera, hittables::HittableList};
 mod camera;
 mod color;
 mod hittables;
+mod material;
 mod math;
 
 fn main() {
-    // World
     let mut world = HittableList::default();
-    world.push(Sphere::new(Vec3::new(0, 0, -1), 0.5));
-    world.push(Sphere::new(Vec3::new(0, -100.5, -1), 100.0));
+
+    let material_ground = Lambertian::new(Color::from_rgb_float(Vec3::new(0.8, 0.8, 0.0)));
+    let material_center = Lambertian::new(Color::from_rgb_float(Vec3::new(0.1, 0.2, 0.5)));
+    let material_left = Metal::new(Color::from_rgb_float(Vec3::new(0.8, 0.8, 0.8)));
+    let material_right = Metal::new(Color::from_rgb_float(Vec3::new(0.8, 0.6, 0.2)));
+
+    world.push(Sphere::new(
+        Vec3::new(0, -100.5, -1),
+        100.0,
+        material_ground.into(),
+    ));
+    world.push(Sphere::new(
+        Vec3::new(0, 0, -1.2),
+        0.5,
+        material_center.into(),
+    ));
+    world.push(Sphere::new(Vec3::new(-1, 0, -1), 0.5, material_left.into()));
+    world.push(Sphere::new(Vec3::new(1, 0, -1), 0.5, material_right.into()));
 
     let camera = Camera::builder()
         .aspect_ratio(16.0 / 9.0)

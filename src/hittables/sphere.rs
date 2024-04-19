@@ -1,13 +1,12 @@
 use crate::{
-    hittables::{HitRecord, Hit},
-    math::{ray::Ray, Range},
-    math::vec3::{dot, Vec3},
+    hittables::{HitRecord, Hit}, material::Material, math::vec3::{dot, Vec3}, math::{ray::Ray, Range}
 };
 
 #[derive(Debug, Clone, derive_more::Constructor)]
 pub struct Sphere {
     center: Vec3,
     radius: f64,
+    material: Material,
 }
 
 impl Sphere {
@@ -40,6 +39,6 @@ impl Hit for Sphere {
         let p = r.at(root);
 
         let outward_normal = (p - self.center) / self.radius;
-        Some(HitRecord::new(root, p, r, outward_normal))
+        Some(HitRecord::new(root, p, r, outward_normal, &self.material))
     }
 }

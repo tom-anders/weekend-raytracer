@@ -1,6 +1,5 @@
 use crate::{
-    math::ray::Ray,
-    math::{vec3::{dot, Vec3}, Range},
+    material::Material, math::ray::Ray, math::{vec3::{dot, Vec3}, Range}
 };
 
 pub mod sphere;
@@ -10,15 +9,16 @@ pub mod hittable_list;
 pub use hittable_list::HittableList;
 
 #[derive(Debug, Clone)]
-pub struct HitRecord {
+pub struct HitRecord<'a> {
     p: Vec3,
     normal: Vec3,
+    material: &'a Material,
     t: f64,
     front_face: bool,
 }
 
-impl HitRecord {
-    pub fn new(t: f64, p: Vec3, ray: &Ray, outward_normal: Vec3) -> Self {
+impl<'a> HitRecord<'a> {
+    pub fn new(t: f64, p: Vec3, ray: &Ray, outward_normal: Vec3, material: &'a Material) -> Self {
         let front_face = dot(ray.direction(), &outward_normal) < 0.0;
         Self {
             p,
@@ -29,6 +29,7 @@ impl HitRecord {
             },
             t,
             front_face,
+            material,
         }
     }
 
@@ -43,6 +44,10 @@ impl HitRecord {
     pub fn t(&self) -> f64 {
         self.t
     }
+
+    pub fn material(&self) -> &Material {
+        self.material
+    }
 }
 
 #[derive(Debug, Clone, derive_more::From)]
@@ -52,7 +57,7 @@ pub enum Hittable {
 }
 
 pub trait Hit : Sync {
-    fn hit(&self, r: &Ray, ray_bounds: &Range) -> Option<HitRecord>;
+    fn hit(&self, r: &Ray, ray_bounds: &Range) -> Option<HitRecord<'_>>;
 }
 
 impl Hittable {

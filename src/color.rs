@@ -1,6 +1,7 @@
 use crate::math::vec3::Vec3;
 
-pub struct Color(Vec3);
+#[derive(Debug, Clone, Copy)]
+pub struct Color(pub Vec3);
 
 fn linear_to_gamma(linear_component: f64) -> f64 {
     linear_component.max(0.0).sqrt()
