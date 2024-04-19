@@ -1,7 +1,7 @@
 use crate::{
     color::Color,
     hittables::HitRecord,
-    math::{reflect, Ray, Vec3},
+    math::{dot, reflect, Ray, Vec3},
 };
 
 #[derive(Debug, Clone, derive_more::From)]
@@ -28,12 +28,15 @@ impl Lambertian {
 #[derive(Debug, Clone, derive_more::Constructor)]
 pub struct Metal {
     albedo: Color,
+    fuzz: f64,
 }
 
 impl Metal {
     pub fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
-        let reflected = reflect(ray_in.direction(), &hit_record.normal());
-        ScatteredRay::new(hit_record, self.albedo, reflected).into()
+        let reflected = reflect(ray_in.direction(), &hit_record.normal()).normalized()
+            + self.fuzz * Vec3::random_unit_vector();
+        let scattered = ScatteredRay::new(hit_record, self.albedo, reflected);
+        (dot(scattered.ray.direction(), &hit_record.normal()) > 0.0).then_some(scattered)
     }
 }
 
