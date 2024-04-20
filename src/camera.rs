@@ -9,81 +9,111 @@ use crate::{
 
 #[derive(Debug, Clone, derive_builder::Builder)]
 #[builder(build_fn(private, name = "build_private"))]
-#[builder(setter(skip))]
-pub struct Camera {
-    #[builder(setter, default = "1.0")]
+pub struct CameraParams {
+    #[builder(default = "1.0")]
     aspect_ratio: f64,
-    #[builder(setter, default = "100")]
+    #[builder(default = "100")]
     image_width: usize,
-    #[builder(setter, default = "10")]
+    #[builder(default = "10")]
     samples_per_pixel: usize,
-    #[builder(setter, default = "90.0")]
+    #[builder(default = "90.0")]
     vfov_degrees: f64,
-    #[builder(setter, default = "10")]
+    #[builder(default = "10")]
     max_depth: i32,
-    #[builder(setter, default = "Point3::new(0, 0, -1)")]
+    #[builder(default = "Point3::new(0, 0, -1)")]
     look_at: Point3,
-    #[builder(setter, default = "Vec3::new(0, 1, 0)")]
+    #[builder(default = "Vec3::new(0, 1, 0)")]
     v_up: Vec3,
-    #[builder(setter(name = "look_from"), default = "Point3::zero()")]
-    center: Point3,
-    #[builder(setter, default = "None")]
-    defocus_angle: Option<f64>,
     #[builder(setter, default = "10.0")]
     focus_dist: f64,
 
+    look_from: Point3,
+    #[builder(setter, default = "None")]
+    defocus_angle: Option<f64>,
+}
+
+#[derive(Debug, Clone)]
+struct DefocusDisk {
+    u: Vec3,
+    v: Vec3,
+}
+
+impl DefocusDisk {
+    fn sample(&self, center: Point3) -> Point3 {
+        let p = Vec3::random_in_unit_disk();
+        center + (p.x * self.u) + (p.y * self.v)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Camera {
+    image_width: usize,
     image_height: usize,
+    samples_per_pixel: usize,
+    pixel_samples_scale: f64,
+    max_depth: i32,
+    center: Point3,
+
     pixel00_loc: Point3,
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
-    pixel_samples_scale: f64,
-    defocus_disk_u: Vec3,
-    defocus_disk_v: Vec3,
+
+    defocus_disk: Option<DefocusDisk>,
 }
 
-impl CameraBuilder {
+impl CameraParamsBuilder {
     pub fn build(&self) -> Camera {
-        let mut camera = self.build_private().unwrap();
+        let params = self.build_private().unwrap();
 
-        camera.image_height = ((camera.image_width as f64 / camera.aspect_ratio) as usize).max(1);
+        let image_height = ((params.image_width as f64 / params.aspect_ratio) as usize).max(1);
 
-        let theta = camera.vfov_degrees.to_radians();
+        let theta = params.vfov_degrees.to_radians();
         let h = f64::tan(theta / 2.0);
-        let viewport_height = 2.0 * h * camera.focus_dist;
-        let viewport_width =
-            viewport_height * (camera.image_width as f64 / camera.image_height as f64);
+        let viewport_height = 2.0 * h * params.focus_dist;
+        let viewport_width = viewport_height * (params.image_width as f64 / image_height as f64);
 
-        let w = (camera.center - camera.look_at).normalized();
-        let u = cross(&camera.v_up, &w).normalized();
+        let w = (params.look_from - params.look_at).normalized();
+        let u = cross(&params.v_up, &w).normalized();
         let v = cross(&w, &u);
 
         let viewport_u = viewport_width * u; // Vector across viewport horizontal edge
         let viewport_v = viewport_height * (-v); // Vector down viewport vertical edge
 
-        camera.pixel_delta_u = viewport_u / camera.image_width as f64;
-        camera.pixel_delta_v = viewport_v / camera.image_height as f64;
+        let pixel_delta_u = viewport_u / params.image_width as f64;
+        let pixel_delta_v = viewport_v / image_height as f64;
 
         let viewport_upper_left =
-            camera.center - camera.focus_dist * w - viewport_u / 2.0 - viewport_v / 2.0;
+            params.look_from - params.focus_dist * w - viewport_u / 2.0 - viewport_v / 2.0;
 
-        camera.pixel00_loc =
-            viewport_upper_left + 0.5 * (camera.pixel_delta_u + camera.pixel_delta_v);
+        let pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
-        if let Some(defocus_angle) = camera.defocus_angle {
-            let defocus_radius = camera.focus_dist * f64::tan((defocus_angle / 2.0).to_radians());
-            camera.defocus_disk_u = defocus_radius * u;
-            camera.defocus_disk_v = defocus_radius * v;
+        let defocus_disk = params.defocus_angle.map(|defocus_angle| {
+            let defocus_radius = params.focus_dist * f64::tan((defocus_angle / 2.0).to_radians());
+            DefocusDisk {
+                u: defocus_radius * u,
+                v: defocus_radius * v,
+            }
+        });
+
+        Camera {
+            image_width: params.image_width,
+            image_height,
+            samples_per_pixel: params.samples_per_pixel,
+            pixel_samples_scale: 1.0 / params.samples_per_pixel as f64,
+            max_depth: params.max_depth,
+            center: params.look_from,
+
+            pixel00_loc,
+            pixel_delta_u,
+            pixel_delta_v,
+            defocus_disk,
         }
-
-        camera.pixel_samples_scale = 1.0 / camera.samples_per_pixel as f64;
-
-        camera
     }
 }
 
 impl Camera {
-    pub fn builder() -> CameraBuilder {
-        CameraBuilder::default()
+    pub fn builder() -> CameraParamsBuilder {
+        CameraParamsBuilder::default()
     }
 
     pub fn render(&self, world: &impl Hit) {
@@ -120,11 +150,11 @@ impl Camera {
             + ((i as f64 + offset.x) * self.pixel_delta_u)
             + ((j as f64 + offset.y) * self.pixel_delta_v);
 
-        let ray_origin = if self.defocus_angle.is_some() {
-            self.defocus_disk_sample()
-        } else {
-            self.center
-        };
+        let ray_origin = self
+            .defocus_disk
+            .as_ref()
+            .map(|d| d.sample(self.center))
+            .unwrap_or(self.center);
         let ray_direction = pixel_sample - ray_origin;
         Ray::new(ray_origin, ray_direction)
     }
@@ -148,10 +178,5 @@ impl Camera {
         let unit_direction = r.direction().normalized();
         let a = 0.5 * (unit_direction.y + 1.0);
         (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
-    }
-
-    fn defocus_disk_sample(&self) -> Point3 {
-        let p = Vec3::random_in_unit_disk();
-        self.center + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
     }
 }
