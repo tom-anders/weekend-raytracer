@@ -1,13 +1,14 @@
+use criterion::{criterion_group, criterion_main, Criterion};
 use rand::{thread_rng, Rng};
 use weekend_raytracer::{
+    camera::Camera,
     color::Color,
-    hittables::Sphere,
+    hittables::{HittableList, Sphere, BvhNode},
     material::{Dielectric, Lambertian, Material, Metal},
     math::{Point3, Vec3},
-    {camera::Camera, hittables::HittableList},
 };
 
-fn main() -> std::io::Result<()> {
+fn sphere(c: &mut Criterion) {
     let mut world = HittableList::default();
 
     let ground_material = Lambertian::new(Color::new(0.5, 0.5, 0.5));
@@ -65,8 +66,8 @@ fn main() -> std::io::Result<()> {
 
     let camera = Camera::builder()
         .aspect_ratio(16.0 / 9.0)
-        .image_width(400)
-        .samples_per_pixel(100)
+        .image_width(50)
+        .samples_per_pixel(10)
         .max_depth(50)
         .vfov_degrees(20.0)
         .look_from(Point3::new(13, 2, 3))
@@ -76,7 +77,10 @@ fn main() -> std::io::Result<()> {
         .focus_dist(10.0)
         .build();
 
-    camera.render(&world, &mut std::io::stdout(), &mut std::io::stderr())?;
-
-    Ok(())
+    c.bench_function("Render cover image of book 1", |b| {
+        b.iter(|| camera.render(&world, &mut std::io::sink(), &mut std::io::sink()).unwrap())
+    });
 }
+
+criterion_group!(benches, sphere);
+criterion_main!(benches);

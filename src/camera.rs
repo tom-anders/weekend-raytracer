@@ -116,14 +116,19 @@ impl Camera {
         CameraParamsBuilder::default()
     }
 
-    pub fn render(&self, world: &impl Hit) {
-        println!("P3");
-        println!("{} {}", self.image_width, self.image_height);
-        println!("255");
+    pub fn render(
+        &self,
+        world: &impl Hit,
+        output: &mut impl std::io::Write,
+        progress: &mut impl std::io::Write,
+    ) -> std::io::Result<()> {
+        writeln!(output, "P3")?;
+        writeln!(output, "{} {}", self.image_width, self.image_height)?;
+        writeln!(output, "255")?;
 
         let mut colors = Vec::with_capacity(self.image_width);
         for j in 0..self.image_height {
-            eprint!("\rScanlines remaining: {} ", self.image_height - j);
+            write!(progress, "\rScanlines remaining: {} ", self.image_height - j)?;
             (0..self.image_width)
                 .into_par_iter()
                 .map(|i| {
@@ -136,9 +141,10 @@ impl Camera {
                 .collect_into_vec(&mut colors);
 
             for color in &colors {
-                println!("{color}");
+                writeln!(output, "{color}")?;
             }
         }
+        Ok(())
     }
 
     fn get_ray(&self, i: usize, j: usize) -> Ray {
