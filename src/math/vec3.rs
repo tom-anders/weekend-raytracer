@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 use rand::{distributions::uniform::SampleRange, thread_rng, Rng};
 
 #[derive(Copy, Clone, Debug, PartialEq, Default)]
@@ -192,5 +194,18 @@ impl std::ops::Neg for &Vec3 {
 
     fn neg(self) -> Self::Output {
         -*self
+    }
+}
+
+impl Index<usize> for Vec3 {
+    type Output = f64;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => panic!("Index needs to be 0, 1 or 2"),
+        }
     }
 }

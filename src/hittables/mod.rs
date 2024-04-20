@@ -1,5 +1,5 @@
 use crate::{
-    material::Material, math::{ray::Ray, Point3}, math::{vec3::{dot, Vec3}, Interval}
+    material::Material, math::{Ray, Point3, dot, Vec3, Interval},
 };
 
 pub mod sphere;

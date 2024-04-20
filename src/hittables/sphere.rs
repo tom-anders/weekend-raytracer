@@ -1,8 +1,7 @@
 use crate::{
     hittables::{Hit, HitRecord},
     material::Material,
-    math::{ray::Ray, Interval, Vec3},
-    math::{vec3::dot, Point3},
+    math::{Ray, Interval, Vec3, dot, Point3},
 };
 
 #[derive(Debug, Clone)]

@@ -24,11 +24,27 @@ impl Interval {
         self.r.end() - self.r.start()
     }
 
+    pub fn min(&self) -> f64 {
+        *self.r.start()
+    }
+
+    pub fn max(&self) -> f64 {
+        *self.r.end()
+    }
+
     pub fn contains(&self, x: f64) -> bool {
         self.r.contains(&x)
     }
 
     pub fn surrounds(&self, x: f64) -> bool {
         *self.r.start() < x && x < *self.r.end()
+    }
+
+    #[must_use]
+    pub fn expand(&self, delta: f64) -> Interval {
+        let padding = delta / 2.0;
+        Interval {
+            r: self.r.start() - padding..=self.r.end() + padding,
+        }
     }
 }

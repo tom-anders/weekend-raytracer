@@ -1,6 +1,6 @@
 use std::ops::{Add, Mul};
 
-use crate::math::vec3::Vec3;
+use crate::math::Vec3;
 
 #[derive(Debug, Clone, Copy, derive_more::From)]
 pub struct Color(Vec3);
