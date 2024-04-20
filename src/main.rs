@@ -1,7 +1,7 @@
 use rand::{thread_rng, Rng};
 use weekend_raytracer::{
     color::Color,
-    hittables::Sphere,
+    hittables::{BvhNode, Sphere},
     material::{Dielectric, Lambertian, Material, Metal},
     math::{Point3, Vec3},
     {camera::Camera, hittables::HittableList},
@@ -62,6 +62,8 @@ fn main() -> std::io::Result<()> {
         1.0,
         Metal::new(Color::new(0.7, 0.6, 0.5), 0.0),
     ));
+
+    let world = BvhNode::new(world.into_iter().collect());
 
     let camera = Camera::builder()
         .aspect_ratio(16.0 / 9.0)

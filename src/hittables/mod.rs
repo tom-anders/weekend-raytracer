@@ -2,12 +2,15 @@ use crate::{
     material::Material, math::{dot, Aabb, Interval, Point3, Ray, Vec3},
 };
 
-pub mod sphere;
 use enum_dispatch::enum_dispatch;
-pub use sphere::Sphere;
+mod sphere;
+pub use sphere::*;
 
-pub mod hittable_list;
-pub use hittable_list::HittableList;
+mod hittable_list;
+pub use hittable_list::*;
+
+mod bvh;
+pub use bvh::*;
 
 #[derive(Debug, Clone)]
 pub struct HitRecord<'a> {
@@ -40,6 +43,7 @@ impl<'a> HitRecord<'a> {
 pub enum Hittable {
     Sphere(Sphere),
     List(HittableList),
+    BvhNode(BvhNode),
 }
 
 #[enum_dispatch(Hittable)]

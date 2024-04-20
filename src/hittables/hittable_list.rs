@@ -28,3 +28,12 @@ impl Hit for HittableList {
         &self.bbox
     }
 }
+
+impl IntoIterator for HittableList {
+    type Item = Hittable;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.objects.into_iter()
+    }
+}

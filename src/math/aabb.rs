@@ -8,6 +8,11 @@ pub struct Aabb {
     z: Interval,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum Axis {
+    X, Y, Z
+}
+
 impl Aabb {
     pub fn empty() -> Self {
         Self {
@@ -48,18 +53,18 @@ impl Aabb {
         }
     }
 
-    pub fn hit(&self, ray: &Ray, ray_t: Interval) -> bool {
+    pub fn hit(&self, ray: &Ray, ray_t: &Interval) -> bool {
         let ray_orig = ray.origin();
         let ray_dir = ray.direction();
 
         let (mut t_min, mut t_max) = (ray_t.min(), ray_t.max());
 
-        for axis in [0, 1, 2] {
+        for axis in [Axis::X, Axis::Y, Axis::Z] {
             let ax = self.axis_interval(axis);
-            let adinv = 1.0 / ray_dir[axis];
+            let adinv = 1.0 / ray_dir[axis as usize];
 
-            let t0 = (ax.min() - ray_orig[axis]) * adinv;
-            let t1 = (ax.max() - ray_orig[axis]) * adinv;
+            let t0 = (ax.min() - ray_orig[axis as usize]) * adinv;
+            let t1 = (ax.max() - ray_orig[axis as usize]) * adinv;
 
             t_min = t_min.max(t0.min(t1));
             t_max = t_max.min(t1.max(t0));
@@ -72,12 +77,11 @@ impl Aabb {
         true
     }
 
-    fn axis_interval(&self, n: usize) -> &Interval {
-        match n {
-            0 => &self.x,
-            1 => &self.y,
-            2 => &self.z,
-            _ => panic!(),
+    pub fn axis_interval(&self, a: Axis) -> &Interval {
+        match a {
+            Axis::X => &self.x,
+            Axis::Y => &self.y,
+            Axis::Z => &self.z,
         }
     }
 }

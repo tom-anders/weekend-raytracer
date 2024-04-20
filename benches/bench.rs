@@ -64,6 +64,8 @@ fn sphere(c: &mut Criterion) {
         Metal::new(Color::new(0.7, 0.6, 0.5), 0.0),
     ));
 
+    let world = BvhNode::new(world.into_iter().collect());
+
     let camera = Camera::builder()
         .aspect_ratio(16.0 / 9.0)
         .image_width(50)
