@@ -1,5 +1,6 @@
 use crate::{
-    material::Material, math::{dot, Aabb, Interval, Point3, Ray, Vec3},
+    material::Material,
+    math::{dot, Aabb, Interval, Point3, Ray, Vec3},
 };
 
 use enum_dispatch::enum_dispatch;
@@ -19,10 +20,21 @@ pub struct HitRecord<'a> {
     pub material: &'a Material,
     pub t: f64,
     pub front_face: bool,
+    // texture coordinates
+    pub u: f64,
+    pub v: f64,
 }
 
 impl<'a> HitRecord<'a> {
-    pub fn new(t: f64, p: Point3, ray: &Ray, outward_normal: Vec3, material: &'a Material) -> Self {
+    pub fn new(
+        t: f64,
+        p: Point3,
+        ray: &Ray,
+        outward_normal: Vec3,
+        material: &'a Material,
+        u: f64,
+        v: f64,
+    ) -> Self {
         let front_face = dot(ray.direction(), &outward_normal) < 0.0;
         Self {
             p,
@@ -34,6 +46,8 @@ impl<'a> HitRecord<'a> {
             t,
             front_face,
             material,
+            u,
+            v,
         }
     }
 }
@@ -47,7 +61,7 @@ pub enum Hittable {
 }
 
 #[enum_dispatch(Hittable)]
-pub trait Hit : Sync {
+pub trait Hit: Sync {
     fn hit(&self, r: &Ray, ray_bounds: &Interval) -> Option<HitRecord<'_>>;
     fn bounding_box(&self) -> &Aabb;
 }

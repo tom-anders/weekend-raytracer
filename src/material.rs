@@ -2,9 +2,7 @@ use enum_dispatch::enum_dispatch;
 use rand::{thread_rng, Rng};
 
 use crate::{
-    color::Color,
-    hittables::HitRecord,
-    math::{dot, reflect, refract, Ray, Vec3},
+    color::Color, hittables::HitRecord, math::{dot, reflect, refract, Ray, Vec3}, texture::{Texture, TextureValue}
 };
 
 #[derive(Debug, Clone)]
@@ -20,9 +18,17 @@ trait Scatter {
     fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay>;
 }
 
-#[derive(Debug, Clone, derive_more::Constructor)]
+#[derive(Debug, Clone)]
 pub struct Lambertian {
-    albedo: Color,
+    texture: Box<Texture>,
+}
+
+impl Lambertian {
+    pub fn new(texture: impl Into<Texture>) -> Self {
+        Self {
+            texture: Box::new(texture.into()),
+        }
+    }
 }
 
 impl Scatter for Lambertian {
@@ -31,7 +37,8 @@ impl Scatter for Lambertian {
         if scatter_direction.near_zero() {
             scatter_direction = hit_record.normal;
         }
-        ScatteredRay::new(hit_record, self.albedo, scatter_direction, ray_in.time()).into()
+        let attenuation = self.texture.value(hit_record.u, hit_record.v, hit_record.p);
+        ScatteredRay::new(hit_record, attenuation, scatter_direction, ray_in.time()).into()
     }
 }
 

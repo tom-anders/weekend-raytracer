@@ -82,7 +82,7 @@ impl Hit for Sphere {
         let p = r.at(root);
 
         let outward_normal = (p - center) / self.radius;
-        Some(HitRecord::new(root, p, r, outward_normal, &self.material))
+        Some(HitRecord::new(root, p, r, outward_normal, &self.material, 0.0, 0.0))
     }
 
     fn bounding_box(&self) -> &Aabb {

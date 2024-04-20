@@ -1,20 +1,17 @@
 use rand::{thread_rng, Rng};
 use weekend_raytracer::{
-    color::Color,
-    hittables::{BvhNode, Sphere},
-    material::{Dielectric, Lambertian, Material, Metal},
-    math::{Point3, Vec3},
-    {camera::Camera, hittables::HittableList},
+    color::Color, hittables::{BvhNode, Sphere}, material::{Dielectric, Lambertian, Material, Metal}, math::{Point3, Vec3}, texture::CheckerTexture, {camera::Camera, hittables::HittableList}
 };
 
 fn main() -> std::io::Result<()> {
     let mut world = HittableList::default();
 
-    let ground_material = Lambertian::new(Color::new(0.5, 0.5, 0.5));
+    let checker = CheckerTexture::new(0.32, 
+        Color::new(0.2, 0.3, 0.1), Color::new(0.9, 0.9, 0.9));
     world.push(Sphere::stationary(
         Point3::new(0, -1000, 0),
         1000.0,
-        ground_material,
+        Lambertian::new(checker),
     ));
 
     for a in -11..11 {
