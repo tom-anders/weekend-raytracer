@@ -4,7 +4,7 @@ use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterato
 use crate::{
     color::Color,
     hittables::Hit,
-    math::{cross, Ray, Vec3, Point3},
+    math::{cross, Point3, Ray, Vec3},
 };
 
 #[derive(Debug, Clone, derive_builder::Builder)]
@@ -97,13 +97,11 @@ impl Camera {
             (0..self.image_width)
                 .into_par_iter()
                 .map(|i| {
-                    Color::from_rgb_float(
-                        self.pixel_samples_scale
-                            * std::iter::repeat_with(|| self.get_ray(i, j))
-                                .take(self.samples_per_pixel)
-                                .map(|ray| Self::ray_color(&ray, self.max_depth, world))
-                                .sum::<Vec3>(),
-                    )
+                    self.pixel_samples_scale
+                        * std::iter::repeat_with(|| self.get_ray(i, j))
+                            .take(self.samples_per_pixel)
+                            .map(|ray| Self::ray_color(&ray, self.max_depth, world))
+                            .sum::<Color>()
                 })
                 .collect_into_vec(&mut colors);
 
@@ -136,20 +134,20 @@ impl Camera {
         Vec3::new(rng.gen_range(-0.5..=0.5), rng.gen_range(-0.5..=0.5), 0.0)
     }
 
-    fn ray_color(r: &Ray, depth: i32, world: &impl Hit) -> Vec3 {
+    fn ray_color(r: &Ray, depth: i32, world: &impl Hit) -> Color {
         if depth <= 0 {
-            return Vec3::zero();
+            return Color::black();
         }
         if let Some(hit_record) = world.hit(r, &(0.001..=f64::INFINITY).into()) {
             return if let Some(scattered) = hit_record.material().scatter(r, &hit_record) {
-                scattered.attenuation.0 * Self::ray_color(&scattered.ray, depth - 1, world)
+                scattered.attenuation * Self::ray_color(&scattered.ray, depth - 1, world)
             } else {
-                Vec3::zero()
+                Color::black()
             };
         }
         let unit_direction = r.direction().normalized();
         let a = 0.5 * (unit_direction.y + 1.0);
-        (1.0 - a) * Vec3::new(1.0, 1.0, 1.0) + a * Vec3::new(0.5, 0.7, 1.0)
+        (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
     }
 
     fn defocus_disk_sample(&self) -> Point3 {

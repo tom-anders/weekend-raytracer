@@ -15,7 +15,7 @@ mod math;
 fn main() {
     let mut world = HittableList::default();
 
-    let ground_material = Lambertian::new(Color::from_rgb_float(Vec3::new(0.5, 0.5, 0.5)));
+    let ground_material = Lambertian::new(Color::new(0.5, 0.5, 0.5));
     world.push(Sphere::new(Point3::new(0, -1000, 0), 1000.0, ground_material));
 
     for a in -11..11 {
@@ -32,10 +32,10 @@ fn main() {
                     center,
                     0.2,
                     if chose_mat < 0.8 {
-                        let albedo = Color(Vec3::random(0.0..1.0) * Vec3::random(0.0..1.0));
+                        let albedo = Color::from(Vec3::random(0.0..1.0) * Vec3::random(0.0..1.0));
                         Material::from(Lambertian::new(albedo))
                     } else if chose_mat < 0.95 {
-                        let albedo = Color::from_rgb_float(Vec3::random(0.5..1.0));
+                        let albedo = Color::from(Vec3::random(0.5..1.0));
                         let fuzz = thread_rng().gen_range(0.0..0.5);
                         Material::from(Metal::new(albedo, fuzz))
                     } else {
@@ -50,12 +50,12 @@ fn main() {
     world.push(Sphere::new(
         Point3::new(-4, 1, 0),
         1.0,
-        Lambertian::new(Color::from_rgb_float(Vec3::new(0.4, 0.2, 0.1))),
+        Lambertian::new(Color::new(0.4, 0.2, 0.1)),
     ));
     world.push(Sphere::new(
         Point3::new(4, 1, 0),
         1.0,
-        Metal::new(Color::from_rgb_float(Vec3::new(0.7, 0.6, 0.5)), 0.0),
+        Metal::new(Color::new(0.7, 0.6, 0.5), 0.0),
     ));
 
     let camera = Camera::builder()

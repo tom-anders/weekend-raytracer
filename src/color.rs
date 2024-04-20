@@ -1,15 +1,17 @@
+use std::ops::{Add, Mul};
+
 use crate::math::vec3::Vec3;
 
-#[derive(Debug, Clone, Copy)]
-pub struct Color(pub Vec3);
+#[derive(Debug, Clone, Copy, derive_more::From)]
+pub struct Color(Vec3);
 
 fn linear_to_gamma(linear_component: f64) -> f64 {
     linear_component.max(0.0).sqrt()
 }
 
 impl Color {
-    pub fn from_rgb_float(v: Vec3) -> Self {
-        Self(v)
+    pub fn new(r: f64, g: f64, b: f64) -> Self {
+        Self(Vec3::new(r, g, b))
     }
 
     pub fn black() -> Self {
@@ -33,8 +35,39 @@ impl Color {
     }
 }
 
+impl Mul<Color> for f64 {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color(self * rhs.0)
+    }
+}
+
+impl Mul for Color {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color(self.0 * rhs.0)
+    }
+}
+
+impl Add for Color {
+    type Output = Color;
+
+    fn add(self, rhs: Color) -> Self::Output {
+        Color(self.0 + rhs.0)
+    }
+}
+
 impl std::fmt::Display for Color {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{} {} {}", self.red(), self.green(), self.blue())
     }
 }
+
+impl std::iter::Sum for Color {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Color::black(), |acc, v| acc + v)
+    }
+}
+
