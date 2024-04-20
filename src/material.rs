@@ -1,3 +1,4 @@
+use enum_dispatch::enum_dispatch;
 use rand::{thread_rng, Rng};
 
 use crate::{
@@ -6,11 +7,17 @@ use crate::{
     math::{dot, reflect, refract, Ray, Vec3},
 };
 
-#[derive(Debug, Clone, derive_more::From)]
+#[derive(Debug, Clone)]
+#[enum_dispatch]
 pub enum Material {
     Lambertian(Lambertian),
     Metal(Metal),
     Dielectric(Dielectric),
+}
+
+#[enum_dispatch(Material)]
+trait Scatter {
+    fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay>;
 }
 
 #[derive(Debug, Clone, derive_more::Constructor)]
@@ -18,8 +25,8 @@ pub struct Lambertian {
     albedo: Color,
 }
 
-impl Lambertian {
-    pub fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
+impl Scatter for Lambertian {
+    fn scatter(&self, _: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
         let mut scatter_direction = hit_record.normal() + Vec3::random_unit_vector();
         if scatter_direction.near_zero() {
             scatter_direction = hit_record.normal();
@@ -34,8 +41,8 @@ pub struct Metal {
     fuzz: f64,
 }
 
-impl Metal {
-    pub fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
+impl Scatter for Metal {
+    fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
         let reflected = reflect(ray_in.direction(), &hit_record.normal()).normalized()
             + self.fuzz * Vec3::random_unit_vector();
         let scattered = ScatteredRay::new(hit_record, self.albedo, reflected);
@@ -48,8 +55,8 @@ pub struct Dielectric {
     refraction_index: f64,
 }
 
-impl Dielectric {
-    pub fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
+impl Scatter for Dielectric {
+    fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
         let ri = if hit_record.front_face() {
             1.0 / self.refraction_index
         } else {
@@ -71,7 +78,9 @@ impl Dielectric {
         };
         ScatteredRay::new(hit_record, Color::white(), direction).into()
     }
+}
 
+impl Dielectric {
     fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
         // Use Schlick's approximation for reflectance.
         let r0 = ((1.0 - refraction_index) / (1.0 + refraction_index)).powi(2);

@@ -3,6 +3,7 @@ use crate::{
 };
 
 pub mod sphere;
+use enum_dispatch::enum_dispatch;
 pub use sphere::Sphere;
 
 pub mod hittable_list;
@@ -54,21 +55,14 @@ impl<'a> HitRecord<'a> {
     }
 }
 
-#[derive(Debug, Clone, derive_more::From)]
+#[derive(Debug, Clone)]
+#[enum_dispatch]
 pub enum Hittable {
     Sphere(Sphere),
     List(HittableList),
 }
 
+#[enum_dispatch(Hittable)]
 pub trait Hit : Sync {
     fn hit(&self, r: &Ray, ray_bounds: &Range) -> Option<HitRecord<'_>>;
-}
-
-impl Hittable {
-    fn hit(&self, r: &Ray, ray_bounds: &Range) -> Option<HitRecord> {
-        match self {
-            Hittable::Sphere(s) => s.hit(r, ray_bounds),
-            Hittable::List(l) => l.hit(r, ray_bounds),
-        }
-    }
 }

@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 derive_builder = "0.20.0"
 derive_more = "0.99.17"
+enum_dispatch = "0.3.13"
 rand = "0.8.5"
 rayon = "1.10.0"
 
