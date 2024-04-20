@@ -10,7 +10,9 @@ pub struct Aabb {
 
 #[derive(Debug, Clone, Copy)]
 pub enum Axis {
-    X, Y, Z
+    X,
+    Y,
+    Z,
 }
 
 impl Aabb {
@@ -82,6 +84,20 @@ impl Aabb {
             Axis::X => &self.x,
             Axis::Y => &self.y,
             Axis::Z => &self.z,
+        }
+    }
+
+    pub fn longest_axis(&self) -> Axis {
+        if self.x.size() > self.y.size() {
+            if self.x.size() > self.z.size() {
+                Axis::X
+            } else {
+                Axis::Z
+            }
+        } else if self.y.size() > self.z.size() {
+            Axis::Y
+        } else {
+            Axis::Z
         }
     }
 }

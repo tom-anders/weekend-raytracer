@@ -1,7 +1,5 @@
 use std::cmp::Ordering;
 
-use rand::{thread_rng, Rng};
-
 use crate::math::{Aabb, Axis, Interval, Ray};
 
 use super::{Hit, HitRecord, Hittable};
@@ -15,12 +13,10 @@ pub struct BvhNode {
 
 impl BvhNode {
     pub fn new(mut objects: Vec<Hittable>) -> Self {
-        let axis = match thread_rng().gen_range(0..3) {
-            0 => Axis::X,
-            1 => Axis::Y,
-            2 => Axis::Z,
-            _ => unreachable!(),
-        };
+        let bbox = objects.iter()
+            .fold(Aabb::empty(), |acc, o| Aabb::merge(&acc, o.bounding_box()));
+
+        let axis = bbox.longest_axis();
 
         let (left, right) = match objects.len() {
             1 => (
@@ -51,7 +47,6 @@ impl BvhNode {
             }
         };
 
-        let bbox = Aabb::merge(left.bounding_box(), right.bounding_box());
         Self { left, right, bbox }
     }
 
