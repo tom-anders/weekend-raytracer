@@ -1,8 +1,11 @@
 use crate::{
-    hittables::{HitRecord, Hit}, material::Material, math::vec3::{dot, Vec3}, math::{ray::Ray, Range}
+    hittables::{Hit, HitRecord},
+    material::Material,
+    math::vec3::{dot, Vec3},
+    math::{ray::Ray, Range},
 };
 
-#[derive(Debug, Clone, derive_more::Constructor)]
+#[derive(Debug, Clone)]
 pub struct Sphere {
     center: Vec3,
     radius: f64,
@@ -10,6 +13,14 @@ pub struct Sphere {
 }
 
 impl Sphere {
+    pub fn new(center: Vec3, radius: f64, material: impl Into<Material>) -> Self {
+        Self {
+            center,
+            radius,
+            material: material.into(),
+        }
+    }
+
     pub fn center(&self) -> Vec3 {
         self.center
     }
