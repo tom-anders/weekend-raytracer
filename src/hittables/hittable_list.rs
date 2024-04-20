@@ -1,4 +1,4 @@
-use crate::math::{self, Range};
+use crate::math::{self, Interval};
 
 use super::{Hit, HitRecord, Hittable};
 
@@ -14,7 +14,7 @@ impl HittableList {
 }
 
 impl Hit for HittableList {
-    fn hit(&self, r: &math::Ray, ray_bounds: &Range) -> Option<HitRecord> {
+    fn hit(&self, r: &math::Ray, ray_bounds: &Interval) -> Option<HitRecord> {
         self.objects
             .iter()
             .flat_map(|o| o.hit(r, ray_bounds))

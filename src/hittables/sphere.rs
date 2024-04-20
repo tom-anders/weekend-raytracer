@@ -2,7 +2,7 @@ use crate::{
     hittables::{Hit, HitRecord},
     material::Material,
     math::{vec3::dot, Point3},
-    math::{ray::Ray, Range},
+    math::{ray::Ray, Interval},
 };
 
 #[derive(Debug, Clone)]
@@ -23,7 +23,7 @@ impl Sphere {
 }
 
 impl Hit for Sphere {
-    fn hit(&self, r: &Ray, ray_bounds: &Range) -> Option<HitRecord> {
+    fn hit(&self, r: &Ray, ray_bounds: &Interval) -> Option<HitRecord> {
         let oc = self.center - *r.origin();
         let a = r.direction().length_squared();
         let h = dot(r.direction(), &oc);
