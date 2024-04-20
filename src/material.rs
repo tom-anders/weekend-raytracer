@@ -27,9 +27,9 @@ pub struct Lambertian {
 
 impl Scatter for Lambertian {
     fn scatter(&self, _: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
-        let mut scatter_direction = hit_record.normal() + Vec3::random_unit_vector();
+        let mut scatter_direction = hit_record.normal + Vec3::random_unit_vector();
         if scatter_direction.near_zero() {
-            scatter_direction = hit_record.normal();
+            scatter_direction = hit_record.normal;
         }
         ScatteredRay::new(hit_record, self.albedo, scatter_direction).into()
     }
@@ -43,10 +43,10 @@ pub struct Metal {
 
 impl Scatter for Metal {
     fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
-        let reflected = reflect(ray_in.direction(), &hit_record.normal()).normalized()
+        let reflected = reflect(ray_in.direction(), &hit_record.normal).normalized()
             + self.fuzz * Vec3::random_unit_vector();
         let scattered = ScatteredRay::new(hit_record, self.albedo, reflected);
-        (dot(scattered.ray.direction(), &hit_record.normal()) > 0.0).then_some(scattered)
+        (dot(scattered.ray.direction(), &hit_record.normal) > 0.0).then_some(scattered)
     }
 }
 
@@ -57,7 +57,7 @@ pub struct Dielectric {
 
 impl Scatter for Dielectric {
     fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
-        let ri = if hit_record.front_face() {
+        let ri = if hit_record.front_face {
             1.0 / self.refraction_index
         } else {
             self.refraction_index
@@ -65,16 +65,16 @@ impl Scatter for Dielectric {
 
         let unit_direction = ray_in.direction().normalized();
 
-        let cos_theta = dot(&-unit_direction, &hit_record.normal()).min(1.0);
+        let cos_theta = dot(&-unit_direction, &hit_record.normal).min(1.0);
         let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
 
         let cannot_refract = ri * sin_theta > 1.0;
         let direction = if cannot_refract
             || Self::reflectance(cos_theta, ri) > thread_rng().gen_range(0.0..=1.0)
         {
-            reflect(&unit_direction, &hit_record.normal())
+            reflect(&unit_direction, &hit_record.normal)
         } else {
-            refract(&unit_direction, &hit_record.normal(), ri)
+            refract(&unit_direction, &hit_record.normal, ri)
         };
         ScatteredRay::new(hit_record, Color::white(), direction).into()
     }
@@ -97,7 +97,7 @@ impl ScatteredRay {
     pub fn new(hit_record: &HitRecord, attenuation: Color, direction: Vec3) -> Self {
         Self {
             attenuation,
-            ray: Ray::new(hit_record.p(), direction),
+            ray: Ray::new(hit_record.p, direction),
         }
     }
 }

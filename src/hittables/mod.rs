@@ -11,11 +11,11 @@ pub use hittable_list::HittableList;
 
 #[derive(Debug, Clone)]
 pub struct HitRecord<'a> {
-    p: Point3,
-    normal: Vec3,
-    material: &'a Material,
-    t: f64,
-    front_face: bool,
+    pub p: Point3,
+    pub normal: Vec3,
+    pub material: &'a Material,
+    pub t: f64,
+    pub front_face: bool,
 }
 
 impl<'a> HitRecord<'a> {
@@ -32,26 +32,6 @@ impl<'a> HitRecord<'a> {
             front_face,
             material,
         }
-    }
-
-    pub fn p(&self) -> Point3 {
-        self.p
-    }
-
-    pub fn normal(&self) -> Vec3 {
-        self.normal
-    }
-
-    pub fn t(&self) -> f64 {
-        self.t
-    }
-
-    pub fn material(&self) -> &Material {
-        self.material
-    }
-
-    pub fn front_face(&self) -> bool {
-        self.front_face
     }
 }
 

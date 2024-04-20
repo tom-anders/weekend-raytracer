@@ -169,7 +169,7 @@ impl Camera {
             return Color::black();
         }
         if let Some(hit_record) = world.hit(r, &(0.001..=f64::INFINITY).into()) {
-            return if let Some(scattered) = hit_record.material().scatter(r, &hit_record) {
+            return if let Some(scattered) = hit_record.material.scatter(r, &hit_record) {
                 scattered.attenuation * Self::ray_color(&scattered.ray, depth - 1, world)
             } else {
                 Color::black()

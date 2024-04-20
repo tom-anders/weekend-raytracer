@@ -20,10 +20,6 @@ impl Sphere {
             material: material.into(),
         }
     }
-
-    pub fn center(&self) -> Point3 {
-        self.center
-    }
 }
 
 impl Hit for Sphere {

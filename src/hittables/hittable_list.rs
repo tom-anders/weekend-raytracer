@@ -11,10 +11,6 @@ impl HittableList {
     pub fn push(&mut self, hittable: impl Into<Hittable>) {
         self.objects.push(hittable.into());
     }
-
-    pub fn clear(&mut self) {
-        self.objects.clear();
-    }
 }
 
 impl Hit for HittableList {

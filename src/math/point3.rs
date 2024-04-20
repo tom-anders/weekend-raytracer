@@ -5,21 +5,24 @@ use super::Vec3;
 #[derive(Debug, Clone, Copy, PartialEq, Default, derive_more::From)]
 pub struct Point3(Vec3);
 
+#[allow(dead_code)] // Might use some methods later in the book
 impl Point3 {
     pub fn new(x: impl Into<f64>, y: impl Into<f64>, z: impl Into<f64>) -> Self {
         Self(Vec3::new(x, y, z))
     }
 
-    pub fn zero() -> Self {
+    pub fn origin() -> Self {
         Self(Vec3::zero())
     }
 
     pub fn x(&self) -> f64 {
         self.0.x
     }
+
     pub fn y(&self) -> f64 {
         self.0.y
     }
+
     pub fn z(&self) -> f64 {
         self.0.z
     }
