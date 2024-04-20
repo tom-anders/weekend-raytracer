@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::{thread_rng, Rng};
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 
 use crate::{
@@ -156,7 +156,8 @@ impl Camera {
             .map(|d| d.sample(self.center))
             .unwrap_or(self.center);
         let ray_direction = pixel_sample - ray_origin;
-        Ray::new(ray_origin, ray_direction)
+        let ray_time = thread_rng().gen();
+        Ray::new(ray_origin, ray_direction, ray_time)
     }
 
     fn sample_square() -> Vec3 {

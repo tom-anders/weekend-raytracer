@@ -26,12 +26,12 @@ pub struct Lambertian {
 }
 
 impl Scatter for Lambertian {
-    fn scatter(&self, _: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
+    fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
         let mut scatter_direction = hit_record.normal + Vec3::random_unit_vector();
         if scatter_direction.near_zero() {
             scatter_direction = hit_record.normal;
         }
-        ScatteredRay::new(hit_record, self.albedo, scatter_direction).into()
+        ScatteredRay::new(hit_record, self.albedo, scatter_direction, ray_in.time()).into()
     }
 }
 
@@ -45,7 +45,7 @@ impl Scatter for Metal {
     fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
         let reflected = reflect(ray_in.direction(), &hit_record.normal).normalized()
             + self.fuzz * Vec3::random_unit_vector();
-        let scattered = ScatteredRay::new(hit_record, self.albedo, reflected);
+        let scattered = ScatteredRay::new(hit_record, self.albedo, reflected, ray_in.time());
         (dot(scattered.ray.direction(), &hit_record.normal) > 0.0).then_some(scattered)
     }
 }
@@ -76,7 +76,7 @@ impl Scatter for Dielectric {
         } else {
             refract(&unit_direction, &hit_record.normal, ri)
         };
-        ScatteredRay::new(hit_record, Color::white(), direction).into()
+        ScatteredRay::new(hit_record, Color::white(), direction, ray_in.time()).into()
     }
 }
 
@@ -94,10 +94,10 @@ pub struct ScatteredRay {
 }
 
 impl ScatteredRay {
-    pub fn new(hit_record: &HitRecord, attenuation: Color, direction: Vec3) -> Self {
+    pub fn new(hit_record: &HitRecord, attenuation: Color, direction: Vec3, time: f64) -> Self {
         Self {
             attenuation,
-            ray: Ray::new(hit_record.p, direction),
+            ray: Ray::new(hit_record.p, direction, time),
         }
     }
 }

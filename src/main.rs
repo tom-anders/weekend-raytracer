@@ -16,7 +16,11 @@ fn main() {
     let mut world = HittableList::default();
 
     let ground_material = Lambertian::new(Color::new(0.5, 0.5, 0.5));
-    world.push(Sphere::new(Point3::new(0, -1000, 0), 1000.0, ground_material));
+    world.push(Sphere::stationary(
+        Point3::new(0, -1000, 0),
+        1000.0,
+        ground_material,
+    ));
 
     for a in -11..11 {
         for b in -11..11 {
@@ -28,8 +32,10 @@ fn main() {
             );
 
             if (center - Point3::new(4, 0.2, 0)).length() > 0.9 {
-                world.push(Sphere::new(
+                let center2 = center + Vec3::new(0, thread_rng().gen_range(0.0..0.5), 0);
+                world.push(Sphere::moving(
                     center,
+                    center2,
                     0.2,
                     if chose_mat < 0.8 {
                         let albedo = Color::from(Vec3::random(0.0..1.0) * Vec3::random(0.0..1.0));
@@ -46,13 +52,17 @@ fn main() {
         }
     }
 
-    world.push(Sphere::new(Point3::new(0, 1, 0), 1.0, Dielectric::new(1.5)));
-    world.push(Sphere::new(
+    world.push(Sphere::stationary(
+        Point3::new(0, 1, 0),
+        1.0,
+        Dielectric::new(1.5),
+    ));
+    world.push(Sphere::stationary(
         Point3::new(-4, 1, 0),
         1.0,
         Lambertian::new(Color::new(0.4, 0.2, 0.1)),
     ));
-    world.push(Sphere::new(
+    world.push(Sphere::stationary(
         Point3::new(4, 1, 0),
         1.0,
         Metal::new(Color::new(0.7, 0.6, 0.5), 0.0),
@@ -60,8 +70,8 @@ fn main() {
 
     let camera = Camera::builder()
         .aspect_ratio(16.0 / 9.0)
-        .image_width(1200)
-        .samples_per_pixel(10)
+        .image_width(400)
+        .samples_per_pixel(100)
         .max_depth(50)
         .vfov_degrees(20.0)
         .look_from(Point3::new(13, 2, 3))
