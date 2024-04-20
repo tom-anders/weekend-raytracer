@@ -1,7 +1,7 @@
 use crate::{
     hittables::{Hit, HitRecord},
     material::Material,
-    math::{Ray, Interval, Vec3, dot, Point3},
+    math::{dot, Aabb, Interval, Point3, Ray, Vec3},
 };
 
 #[derive(Debug, Clone)]
@@ -11,16 +11,19 @@ pub struct Sphere {
     material: Material,
     is_moving: bool,
     center_vec: Vec3,
+    bbox: Aabb,
 }
 
 impl Sphere {
     pub fn stationary(center: Point3, radius: f64, material: impl Into<Material>) -> Self {
+        let rvec = Vec3::new(radius, radius, radius);
         Self {
             center1: center,
             radius,
             material: material.into(),
             is_moving: false,
             center_vec: Vec3::zero(),
+            bbox: Aabb::from_points(center - rvec, center + rvec),
         }
     }
 
@@ -30,12 +33,16 @@ impl Sphere {
         radius: f64,
         material: impl Into<Material>,
     ) -> Self {
+        let rvec = Vec3::new(radius, radius, radius);
+        let bbox1 = Aabb::from_points(center1 - rvec, center1 + rvec);
+        let bbox2 = Aabb::from_points(center2 - rvec, center2 + rvec);
         Self {
             center1,
             radius,
             material: material.into(),
             is_moving: true,
             center_vec: center2 - center1,
+            bbox: Aabb::merge(&bbox1, &bbox2),
         }
     }
 
@@ -76,5 +83,9 @@ impl Hit for Sphere {
 
         let outward_normal = (p - center) / self.radius;
         Some(HitRecord::new(root, p, r, outward_normal, &self.material))
+    }
+
+    fn bounding_box(&self) -> &Aabb {
+        &self.bbox
     }
 }

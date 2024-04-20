@@ -1,5 +1,5 @@
 use crate::{
-    material::Material, math::{Ray, Point3, dot, Vec3, Interval},
+    material::Material, math::{dot, Aabb, Interval, Point3, Ray, Vec3},
 };
 
 pub mod sphere;
@@ -45,4 +45,5 @@ pub enum Hittable {
 #[enum_dispatch(Hittable)]
 pub trait Hit : Sync {
     fn hit(&self, r: &Ray, ray_bounds: &Interval) -> Option<HitRecord<'_>>;
+    fn bounding_box(&self) -> &Aabb;
 }

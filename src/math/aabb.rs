@@ -1,7 +1,7 @@
 use super::{Interval, Point3, Ray};
 
 /// Axis-aligned bounding box
-#[derive(Debug, Clone, derive_more::Constructor)]
+#[derive(Debug, Default, Clone, derive_more::Constructor)]
 pub struct Aabb {
     x: Interval,
     y: Interval,
@@ -17,7 +17,7 @@ impl Aabb {
         }
     }
 
-    pub fn from_points(a: &Point3, b: &Point3) -> Self {
+    pub fn from_points(a: Point3, b: Point3) -> Self {
         Self {
             x: if a.x() < b.x() {
                 a.x()..=b.x()
@@ -37,6 +37,14 @@ impl Aabb {
                 b.z()..=a.z()
             }
             .into(),
+        }
+    }
+
+    pub fn merge(box0: &Self, box1: &Self) -> Self {
+        Self {
+            x: Interval::merge(&box0.x, &box1.x),
+            y: Interval::merge(&box0.y, &box1.y),
+            z: Interval::merge(&box0.z, &box1.z),
         }
     }
 

@@ -8,6 +8,10 @@ pub struct Interval {
 #[allow(dead_code)] // These functions are all implemented in book 1 but never used. Maybe we use
                     // them in book 2, so don't warn about them being unused for now.
 impl Interval {
+    pub fn merge(a: &Self, b: &Self) -> Self {
+        Self::from(f64::min(a.min(), b.min())..=f64::max(a.max(), b.max()))
+    }
+
     pub fn empty() -> Self {
         (f64::INFINITY..=f64::NEG_INFINITY).into()
     }
@@ -46,5 +50,11 @@ impl Interval {
         Interval {
             r: self.r.start() - padding..=self.r.end() + padding,
         }
+    }
+}
+
+impl Default for Interval {
+    fn default() -> Self {
+        Self::empty()
     }
 }
