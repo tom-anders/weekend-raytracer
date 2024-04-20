@@ -1,5 +1,5 @@
 use crate::{
-    material::Material, math::ray::Ray, math::{vec3::{dot, Vec3}, Range}
+    material::Material, math::{ray::Ray, Point3}, math::{vec3::{dot, Vec3}, Range}
 };
 
 pub mod sphere;
@@ -10,7 +10,7 @@ pub use hittable_list::HittableList;
 
 #[derive(Debug, Clone)]
 pub struct HitRecord<'a> {
-    p: Vec3,
+    p: Point3,
     normal: Vec3,
     material: &'a Material,
     t: f64,
@@ -18,7 +18,7 @@ pub struct HitRecord<'a> {
 }
 
 impl<'a> HitRecord<'a> {
-    pub fn new(t: f64, p: Vec3, ray: &Ray, outward_normal: Vec3, material: &'a Material) -> Self {
+    pub fn new(t: f64, p: Point3, ray: &Ray, outward_normal: Vec3, material: &'a Material) -> Self {
         let front_face = dot(ray.direction(), &outward_normal) < 0.0;
         Self {
             p,
@@ -33,7 +33,7 @@ impl<'a> HitRecord<'a> {
         }
     }
 
-    pub fn p(&self) -> Vec3 {
+    pub fn p(&self) -> Point3 {
         self.p
     }
 

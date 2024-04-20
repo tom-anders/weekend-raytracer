@@ -1,7 +1,7 @@
 use color::Color;
 use hittables::Sphere;
 use material::{Dielectric, Lambertian, Material, Metal};
-use math::Vec3;
+use math::{Point3, Vec3};
 use rand::{thread_rng, Rng};
 
 use crate::{camera::Camera, hittables::HittableList};
@@ -16,18 +16,18 @@ fn main() {
     let mut world = HittableList::default();
 
     let ground_material = Lambertian::new(Color::from_rgb_float(Vec3::new(0.5, 0.5, 0.5)));
-    world.push(Sphere::new(Vec3::new(0, -1000, 0), 1000.0, ground_material));
+    world.push(Sphere::new(Point3::new(0, -1000, 0), 1000.0, ground_material));
 
     for a in -11..11 {
         for b in -11..11 {
             let chose_mat = thread_rng().gen_range(0.0..1.0);
-            let center = Vec3::new(
+            let center = Point3::new(
                 a as f64 + 0.9 * thread_rng().gen_range(0.0..1.0),
                 0.2,
                 b as f64 + 0.9 * thread_rng().gen_range(0.0..1.0),
             );
 
-            if (center - Vec3::new(4, 0.2, 0)).length() > 0.9 {
+            if (center - Point3::new(4, 0.2, 0)).length() > 0.9 {
                 world.push(Sphere::new(
                     center,
                     0.2,
@@ -46,14 +46,14 @@ fn main() {
         }
     }
 
-    world.push(Sphere::new(Vec3::new(0, 1, 0), 1.0, Dielectric::new(1.5)));
+    world.push(Sphere::new(Point3::new(0, 1, 0), 1.0, Dielectric::new(1.5)));
     world.push(Sphere::new(
-        Vec3::new(-4, 1, 0),
+        Point3::new(-4, 1, 0),
         1.0,
         Lambertian::new(Color::from_rgb_float(Vec3::new(0.4, 0.2, 0.1))),
     ));
     world.push(Sphere::new(
-        Vec3::new(4, 1, 0),
+        Point3::new(4, 1, 0),
         1.0,
         Metal::new(Color::from_rgb_float(Vec3::new(0.7, 0.6, 0.5)), 0.0),
     ));
@@ -64,8 +64,8 @@ fn main() {
         .samples_per_pixel(10)
         .max_depth(50)
         .vfov_degrees(20.0)
-        .look_from(Vec3::new(13, 2, 3))
-        .look_at(Vec3::new(0, 0, 0))
+        .look_from(Point3::new(13, 2, 3))
+        .look_at(Point3::new(0, 0, 0))
         .v_up(Vec3::new(0, 1, 0))
         .defocus_angle(Some(0.6))
         .focus_dist(10.0)

@@ -1,19 +1,19 @@
 use crate::{
     hittables::{Hit, HitRecord},
     material::Material,
-    math::vec3::{dot, Vec3},
+    math::{vec3::dot, Point3},
     math::{ray::Ray, Range},
 };
 
 #[derive(Debug, Clone)]
 pub struct Sphere {
-    center: Vec3,
+    center: Point3,
     radius: f64,
     material: Material,
 }
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64, material: impl Into<Material>) -> Self {
+    pub fn new(center: Point3, radius: f64, material: impl Into<Material>) -> Self {
         Self {
             center,
             radius,
@@ -21,7 +21,7 @@ impl Sphere {
         }
     }
 
-    pub fn center(&self) -> Vec3 {
+    pub fn center(&self) -> Point3 {
         self.center
     }
 }

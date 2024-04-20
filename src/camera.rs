@@ -4,7 +4,7 @@ use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterato
 use crate::{
     color::Color,
     hittables::Hit,
-    math::{cross, Ray, Vec3},
+    math::{cross, Ray, Vec3, Point3},
 };
 
 #[derive(Debug, Clone, derive_builder::Builder)]
@@ -21,19 +21,19 @@ pub struct Camera {
     vfov_degrees: f64,
     #[builder(setter, default = "10")]
     max_depth: i32,
-    #[builder(setter, default = "Vec3::new(0, 0, -1)")]
-    look_at: Vec3,
+    #[builder(setter, default = "Point3::new(0, 0, -1)")]
+    look_at: Point3,
     #[builder(setter, default = "Vec3::new(0, 1, 0)")]
     v_up: Vec3,
-    #[builder(setter(name = "look_from"), default = "Vec3::zero()")]
-    center: Vec3,
+    #[builder(setter(name = "look_from"), default = "Point3::zero()")]
+    center: Point3,
     #[builder(setter, default = "None")]
     defocus_angle: Option<f64>,
     #[builder(setter, default = "10.0")]
     focus_dist: f64,
 
     image_height: usize,
-    pixel00_loc: Vec3,
+    pixel00_loc: Point3,
     pixel_delta_u: Vec3,
     pixel_delta_v: Vec3,
     pixel_samples_scale: f64,
@@ -152,7 +152,7 @@ impl Camera {
         (1.0 - a) * Vec3::new(1.0, 1.0, 1.0) + a * Vec3::new(0.5, 0.7, 1.0)
     }
 
-    fn defocus_disk_sample(&self) -> Vec3 {
+    fn defocus_disk_sample(&self) -> Point3 {
         let p = Vec3::random_in_unit_disk();
         self.center + (p.x * self.defocus_disk_u) + (p.y * self.defocus_disk_v)
     }

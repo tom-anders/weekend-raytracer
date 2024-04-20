@@ -1,17 +1,19 @@
 use crate::math::vec3::Vec3;
 
+use super::Point3;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Ray {
-    origin: Vec3,
+    origin: Point3,
     direction: Vec3,
 }
 
 impl Ray {
-    pub fn new(origin: Vec3, direction: Vec3) -> Self {
+    pub fn new(origin: Point3, direction: Vec3) -> Self {
         Self { origin, direction }
     }
 
-    pub fn origin(&self) -> &Vec3 {
+    pub fn origin(&self) -> &Point3 {
         &self.origin
     }
 
@@ -19,7 +21,7 @@ impl Ray {
         &self.direction
     }
 
-    pub fn at(&self, t: f64) -> Vec3 {
+    pub fn at(&self, t: f64) -> Point3 {
         self.origin + t * self.direction
     }
 }
