@@ -142,7 +142,7 @@ impl Scene {
                     .defocus_angle(Some(0.6));
             }
             Self::PerlinSpheres => {
-                let perlin_text = Noise::default();
+                let perlin_text = Noise::new(4.0);
                 world.push(Sphere::stationary(Point3::new(0, -1000, 0), 1000.0, Lambertian::new(perlin_text.clone())));
                 world.push(Sphere::stationary(Point3::new(0, 2, 0), 2.0, Lambertian::new(perlin_text.clone())));
 

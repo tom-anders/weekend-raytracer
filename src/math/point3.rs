@@ -1,4 +1,4 @@
-use std::ops::{Add, Index, Sub};
+use std::ops::{Add, Index, Mul, Sub};
 
 use super::Vec3;
 
@@ -51,6 +51,15 @@ impl Sub<Vec3> for Point3 {
         Point3(self.0 - rhs)
     }
 }
+
+impl Mul<Point3> for f64 {
+    type Output = Point3;
+
+    fn mul(self, rhs: Point3) -> Self::Output {
+        Point3(self * rhs.0)
+    }
+}
+
 
 impl Index<usize> for Point3 {
     type Output = f64;

@@ -31,12 +31,6 @@ fn trilinear_interp(c: &[[[f64; 2]; 2]; 2], u: f64, v: f64, w: f64) -> f64 {
         .sum()
 }
 
-impl Default for Perlin {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl Perlin {
     pub fn new() -> Self {
         Self {
