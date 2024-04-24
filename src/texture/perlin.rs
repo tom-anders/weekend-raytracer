@@ -26,16 +26,17 @@ fn trilinear_interp(c: &[[[Vec3; 2]; 2]; 2], u: f64, v: f64, w: f64) -> f64 {
     let v = hermitian(v);
     let w = hermitian(w);
 
-    iproduct!(0..2, 0..2, 0..2)
-        .map(|(i, j, k)| {
-            let (i, j, k) = (i as f64, j as f64, k as f64);
+    let vals = |factor: f64| {
+        [0.0, 1.0]
+            .into_iter()
+            .map(move |i| i * factor + (1.0 - i) * (1.0 - factor))
+            .enumerate()
+    };
 
-            let weight_v = Vec3::new(u - i, v - j, w - k);
-
-            (i * u + (1.0 - i) * (1.0 - u))
-                * (j * v + (1.0 - j) * (1.0 - v))
-                * (k * w + (1.0 - k) * (1.0 - w))
-                * dot(&c[i as usize][j as usize][k as usize], &weight_v)
+    iproduct!(vals(u), vals(v), vals(w))
+        .map(|((i, ival), (j, jval), (k, kval))| {
+            let weight_v = Vec3::new(u - i as f64, v - j as f64, w - k as f64);
+            ival * jval * kval * dot(&c[i][j][k], &weight_v)
         })
         .sum()
 }
