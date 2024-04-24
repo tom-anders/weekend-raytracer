@@ -1,3 +1,6 @@
+use std::path::Path;
+
+use anyhow::Result;
 use clap::Parser;
 use rand::{thread_rng, Rng};
 use weekend_raytracer::{
@@ -5,7 +8,7 @@ use weekend_raytracer::{
     hittables::{BvhNode, Hittable, Sphere},
     material::{Dielectric, Lambertian, Material, Metal},
     math::{Point3, Vec3},
-    texture::CheckerTexture,
+    texture::{CheckerTexture, Image},
     {camera::Camera, hittables::HittableList},
 };
 
@@ -19,10 +22,11 @@ struct Args {
 enum Scene {
     BouncingSpheres,
     CheckeredSpheres,
+    Earth,
 }
 
 impl Scene {
-    fn create(&self) -> (Camera, Hittable) {
+    fn create(&self) -> Result<(Camera, Hittable)> {
         let mut camera = Camera::builder();
         let mut world = HittableList::default();
         match self {
@@ -100,8 +104,16 @@ impl Scene {
                 let checker =
                     CheckerTexture::new(0.32, Color::new(0.2, 0.3, 0.1), Color::new(0.9, 0.9, 0.9));
 
-                world.push(Sphere::stationary(Point3::new(0, -10, 0), 10.0, Lambertian::new(checker.clone())));
-                world.push(Sphere::stationary(Point3::new(0, 10, 0), 10.0, Lambertian::new(checker.clone())));
+                world.push(Sphere::stationary(
+                    Point3::new(0, -10, 0),
+                    10.0,
+                    Lambertian::new(checker.clone()),
+                ));
+                world.push(Sphere::stationary(
+                    Point3::new(0, 10, 0),
+                    10.0,
+                    Lambertian::new(checker.clone()),
+                ));
 
                 camera
                     .aspect_ratio(16.0 / 9.0)
@@ -113,18 +125,33 @@ impl Scene {
                     .look_at(Point3::new(0, 0, 0))
                     .defocus_angle(None);
             }
+            Self::Earth => {
+                let earth_texture = Lambertian::new(Image::new(Path::new("res/earthmap.jpg"))?);
+                world.push(Sphere::stationary(Point3::new(0, 0, 0), 2.0, earth_texture));
+
+                camera
+                    .aspect_ratio(16.0 / 9.0)
+                    .image_width(400)
+                    .samples_per_pixel(100)
+                    .max_depth(50)
+                    .vfov_degrees(20.0)
+                    .look_from(Point3::new(0, 0, 12))
+                    .look_at(Point3::new(0, 0, 0))
+                    .v_up(Vec3::new(0, 1, 0))
+                    .defocus_angle(Some(0.6));
+            }
         }
-        (
+        Ok((
             camera.build(),
             BvhNode::new(world.into_iter().collect()).into(),
-        )
+        ))
     }
 }
 
-fn main() -> std::io::Result<()> {
+fn main() -> Result<()> {
     let args = Args::parse();
 
-    let (camera, world) = args.scene.create();
+    let (camera, world) = args.scene.create()?;
 
     camera.render(&world, &mut std::io::stdout(), &mut std::io::stderr())?;
 

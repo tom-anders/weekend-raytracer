@@ -1,4 +1,8 @@
+use std::path::Path;
+
 use enum_dispatch::enum_dispatch;
+use image::{io::Reader as ImageReader, Rgb32FImage};
+use palette::Srgb;
 
 use crate::{color::Color, math::Point3};
 
@@ -7,6 +11,7 @@ use crate::{color::Color, math::Point3};
 pub enum Texture {
     SolidColor(SolidColor),
     CheckerTexture(CheckerTexture),
+    Image(Image),
 }
 
 impl From<Color> for Texture {
@@ -62,5 +67,34 @@ impl TextureValue for CheckerTexture {
 
         let is_even = (x_integer + y_integer + z_integer) % 2 == 0;
         if is_even { &self.even } else { &self.odd }.value(coords, p)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct Image {
+    img: Rgb32FImage,
+}
+
+impl Image {
+    pub fn new(path: &Path) -> anyhow::Result<Self> {
+        Ok(Self {
+            img: ImageReader::open(path)?.decode()?.to_rgb32f(),
+        })
+    }
+}
+
+impl TextureValue for Image {
+    fn value(&self, coords: &TextureCoords, _: Point3) -> Color {
+        // Clamp input texture coordinates to [0,1] x [1,0]
+        let u = coords.u.clamp(0.0, 1.0);
+        let v = 1.0 - coords.v.clamp(0.0, 1.0); // Flip V to image coordinates
+
+        let i = (u * self.img.width() as f64) as u32;
+        let j = (v * self.img.height() as f64) as u32;
+
+        let pixel = self.img[(i, j)];
+
+        // The image crate loads images in sRGB color space, but our Color class expects linear.
+        Color::from(Srgb::new(pixel[0], pixel[1], pixel[2]).into_linear())
     }
 }

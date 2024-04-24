@@ -35,6 +35,12 @@ impl Color {
     }
 }
 
+impl From<palette::rgb::LinSrgb> for Color {
+    fn from(value: palette::rgb::LinSrgb) -> Self {
+        Self::new(value.red.into(), value.green.into(), value.blue.into())
+    }
+}
+
 impl Mul<Color> for f64 {
     type Output = Color;
 
@@ -70,4 +76,3 @@ impl std::iter::Sum for Color {
         iter.fold(Color::black(), |acc, v| acc + v)
     }
 }
-
