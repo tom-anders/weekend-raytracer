@@ -120,6 +120,6 @@ impl Noise {
 
 impl TextureValue for Noise {
     fn value(&self, _: &TextureCoords, p: Point3) -> Color {
-        self.noise.noise(self.scale * p) * Color::white()
+        0.5 * (1.0 + self.noise.noise(self.scale * p)) * Color::white()
     }
 }
