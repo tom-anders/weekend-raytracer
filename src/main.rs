@@ -18,6 +18,7 @@ struct Args {
 #[derive(Debug, Clone, Copy, clap::ValueEnum)]
 enum Scene {
     BouncingSpheres,
+    CheckeredSpheres,
 }
 
 impl Scene {
@@ -94,6 +95,23 @@ impl Scene {
                     .v_up(Vec3::new(0, 1, 0))
                     .defocus_angle(Some(0.6))
                     .focus_dist(10.0);
+            }
+            Self::CheckeredSpheres => {
+                let checker =
+                    CheckerTexture::new(0.32, Color::new(0.2, 0.3, 0.1), Color::new(0.9, 0.9, 0.9));
+
+                world.push(Sphere::stationary(Point3::new(0, -10, 0), 10.0, Lambertian::new(checker.clone())));
+                world.push(Sphere::stationary(Point3::new(0, 10, 0), 10.0, Lambertian::new(checker.clone())));
+
+                camera
+                    .aspect_ratio(16.0 / 9.0)
+                    .image_width(400)
+                    .samples_per_pixel(100)
+                    .max_depth(50)
+                    .vfov_degrees(20.0)
+                    .look_from(Point3::new(13, 2, 3))
+                    .look_at(Point3::new(0, 0, 0))
+                    .defocus_angle(None);
             }
         }
         (
