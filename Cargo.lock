@@ -1598,6 +1598,7 @@ dependencies = [
  "derive_more",
  "enum_dispatch",
  "image",
+ "itertools 0.12.1",
  "palette",
  "rand",
  "rayon",
