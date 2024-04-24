@@ -8,7 +8,7 @@ use weekend_raytracer::{
     hittables::{BvhNode, Hittable, Sphere},
     material::{Dielectric, Lambertian, Material, Metal},
     math::{Point3, Vec3},
-    texture::{CheckerTexture, Image},
+    texture::{CheckerTexture, Image, Noise},
     {camera::Camera, hittables::HittableList},
 };
 
@@ -23,6 +23,7 @@ enum Scene {
     BouncingSpheres,
     CheckeredSpheres,
     Earth,
+    PerlinSpheres
 }
 
 impl Scene {
@@ -139,6 +140,21 @@ impl Scene {
                     .look_at(Point3::new(0, 0, 0))
                     .v_up(Vec3::new(0, 1, 0))
                     .defocus_angle(Some(0.6));
+            }
+            Self::PerlinSpheres => {
+                let perlin_text = Noise::default();
+                world.push(Sphere::stationary(Point3::new(0, -1000, 0), 1000.0, Lambertian::new(perlin_text.clone())));
+                world.push(Sphere::stationary(Point3::new(0, 2, 0), 2.0, Lambertian::new(perlin_text.clone())));
+
+                camera
+                    .aspect_ratio(16.0 / 9.0)
+                    .image_width(400)
+                    .samples_per_pixel(100)
+                    .max_depth(50)
+                    .vfov_degrees(20.0)
+                    .look_from(Point3::new(13, 2, 3))
+                    .look_at(Point3::new(0, 0, 0))
+                    .v_up(Vec3::new(0, 1, 0));
             }
         }
         Ok((

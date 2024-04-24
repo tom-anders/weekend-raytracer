@@ -6,12 +6,16 @@ use palette::Srgb;
 
 use crate::{color::Color, math::Point3};
 
+mod perlin;
+use perlin::Perlin;
+
 #[derive(Debug, Clone)]
 #[enum_dispatch(TextureValue)]
 pub enum Texture {
     SolidColor(SolidColor),
     CheckerTexture(CheckerTexture),
     Image(Image),
+    Noise(Noise),
 }
 
 impl From<Color> for Texture {
@@ -96,5 +100,16 @@ impl TextureValue for Image {
 
         // The image crate loads images in sRGB color space, but our Color class expects linear.
         Color::from(Srgb::new(pixel[0], pixel[1], pixel[2]).into_linear())
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct Noise {
+    noise: Perlin,
+}
+
+impl TextureValue for Noise {
+    fn value(&self, _: &TextureCoords, p: Point3) -> Color {
+        self.noise.noise(p) * Color::white()
     }
 }
