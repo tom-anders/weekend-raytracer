@@ -15,9 +15,15 @@ impl From<Color> for Texture {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct TextureCoords {
+    pub u: f64,
+    pub v: f64,
+}
+
 #[enum_dispatch]
 pub trait TextureValue {
-    fn value(&self, u: f64, v: f64, p: Point3) -> Color;
+    fn value(&self, coords: &TextureCoords, p: Point3) -> Color;
 }
 
 #[derive(Debug, Clone, derive_more::From)]
@@ -26,7 +32,7 @@ pub struct SolidColor {
 }
 
 impl TextureValue for SolidColor {
-    fn value(&self, _: f64, _: f64, _: Point3) -> Color {
+    fn value(&self, _: &TextureCoords, _: Point3) -> Color {
         self.albedo
     }
 }
@@ -49,12 +55,12 @@ impl CheckerTexture {
 }
 
 impl TextureValue for CheckerTexture {
-    fn value(&self, u: f64, v: f64, p: Point3) -> Color {
+    fn value(&self, coords: &TextureCoords, p: Point3) -> Color {
         let x_integer = f64::floor(self.inv_scale * p.x()) as i32;
         let y_integer = f64::floor(self.inv_scale * p.y()) as i32;
         let z_integer = f64::floor(self.inv_scale * p.z()) as i32;
 
         let is_even = (x_integer + y_integer + z_integer) % 2 == 0;
-        if is_even { &self.even } else { &self.odd }.value(u, v, p)
+        if is_even { &self.even } else { &self.odd }.value(coords, p)
     }
 }

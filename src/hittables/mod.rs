@@ -1,6 +1,5 @@
 use crate::{
-    material::Material,
-    math::{dot, Aabb, Interval, Point3, Ray, Vec3},
+    material::Material, math::{dot, Aabb, Interval, Point3, Ray, Vec3}, texture::TextureCoords
 };
 
 use enum_dispatch::enum_dispatch;
@@ -20,9 +19,7 @@ pub struct HitRecord<'a> {
     pub material: &'a Material,
     pub t: f64,
     pub front_face: bool,
-    // texture coordinates
-    pub u: f64,
-    pub v: f64,
+    pub texture_coords: TextureCoords,
 }
 
 impl<'a> HitRecord<'a> {
@@ -32,8 +29,7 @@ impl<'a> HitRecord<'a> {
         ray: &Ray,
         outward_normal: Vec3,
         material: &'a Material,
-        u: f64,
-        v: f64,
+        texture_coords: TextureCoords,
     ) -> Self {
         let front_face = dot(ray.direction(), &outward_normal) < 0.0;
         Self {
@@ -46,8 +42,7 @@ impl<'a> HitRecord<'a> {
             t,
             front_face,
             material,
-            u,
-            v,
+            texture_coords,
         }
     }
 }

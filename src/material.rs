@@ -37,7 +37,7 @@ impl Scatter for Lambertian {
         if scatter_direction.near_zero() {
             scatter_direction = hit_record.normal;
         }
-        let attenuation = self.texture.value(hit_record.u, hit_record.v, hit_record.p);
+        let attenuation = self.texture.value(&hit_record.texture_coords, hit_record.p);
         ScatteredRay::new(hit_record, attenuation, scatter_direction, ray_in.time()).into()
     }
 }
