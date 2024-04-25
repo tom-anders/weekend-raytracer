@@ -2,20 +2,30 @@ use enum_dispatch::enum_dispatch;
 use rand::{thread_rng, Rng};
 
 use crate::{
-    color::Color, hittables::HitRecord, math::{dot, reflect, refract, Ray, Vec3}, texture::{Texture, TextureValue}
+    color::Color,
+    hittables::HitRecord,
+    math::{dot, reflect, refract, Point3, Ray, Vec3},
+    texture::{Texture, TextureCoords, TextureValue},
 };
 
 #[derive(Debug, Clone)]
-#[enum_dispatch(Scatter)]
+#[enum_dispatch(ScatterAndEmit)]
 pub enum Material {
     Lambertian(Lambertian),
     Metal(Metal),
     Dielectric(Dielectric),
+    DiffuseLight(DiffuseLight),
 }
 
 #[enum_dispatch]
-pub trait Scatter {
-    fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay>;
+pub trait ScatterAndEmit {
+    fn scatter(&self, _ray_in: &Ray, _hit_record: &HitRecord) -> Option<ScatteredRay> {
+        None
+    }
+
+    fn emit(&self, _coords: &TextureCoords, _p: Point3) -> Color {
+        Color::black()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -31,7 +41,7 @@ impl Lambertian {
     }
 }
 
-impl Scatter for Lambertian {
+impl ScatterAndEmit for Lambertian {
     fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
         let mut scatter_direction = hit_record.normal + Vec3::random_unit_vector();
         if scatter_direction.near_zero() {
@@ -48,7 +58,7 @@ pub struct Metal {
     fuzz: f64,
 }
 
-impl Scatter for Metal {
+impl ScatterAndEmit for Metal {
     fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
         let reflected = reflect(ray_in.direction(), &hit_record.normal).normalized()
             + self.fuzz * Vec3::random_unit_vector();
@@ -62,7 +72,7 @@ pub struct Dielectric {
     refraction_index: f64,
 }
 
-impl Scatter for Dielectric {
+impl ScatterAndEmit for Dielectric {
     fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
         let ri = if hit_record.front_face {
             1.0 / self.refraction_index
@@ -92,6 +102,25 @@ impl Dielectric {
         // Use Schlick's approximation for reflectance.
         let r0 = ((1.0 - refraction_index) / (1.0 + refraction_index)).powi(2);
         r0 + (1.0 - r0) * (1.0 - cosine).powi(5)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct DiffuseLight {
+    texture: Box<Texture>,
+}
+
+impl DiffuseLight {
+    pub fn new(texture: impl Into<Texture>) -> Self {
+        Self {
+            texture: Box::new(texture.into()),
+        }
+    }
+}
+
+impl ScatterAndEmit for DiffuseLight {
+    fn emit(&self, coords: &TextureCoords, p: Point3) -> Color {
+        self.texture.value(coords, p)
     }
 }
 
