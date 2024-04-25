@@ -1,7 +1,7 @@
 use super::{Interval, Point3, Ray};
 
 /// Axis-aligned bounding box
-#[derive(Debug, Default, Clone, derive_more::Constructor)]
+#[derive(Debug, Default, Clone)]
 pub struct Aabb {
     x: Interval,
     y: Interval,
@@ -16,6 +16,16 @@ pub enum Axis {
 }
 
 impl Aabb {
+    fn new(x: impl Into<Interval>, y: impl Into<Interval>, z: impl Into<Interval>) -> Self {
+        // Adjust the AABB so that no side is narrower than some delta, padding if necessary.
+        let delta = 0.0001;
+        Self {
+            x: x.into().expand_if_smaller_than(delta),
+            y: y.into().expand_if_smaller_than(delta),
+            z: z.into().expand_if_smaller_than(delta),
+        }
+    }
+
     pub fn empty() -> Self {
         Self {
             x: Interval::empty(),
@@ -25,34 +35,31 @@ impl Aabb {
     }
 
     pub fn from_points(a: Point3, b: Point3) -> Self {
-        Self {
-            x: if a.x() < b.x() {
+        Self::new(
+            if a.x() < b.x() {
                 a.x()..=b.x()
             } else {
                 b.x()..=a.x()
-            }
-            .into(),
-            y: if a.y() < b.y() {
+            },
+            if a.y() < b.y() {
                 a.y()..=b.y()
             } else {
                 b.y()..=a.y()
-            }
-            .into(),
-            z: if a.z() < b.z() {
+            },
+            if a.z() < b.z() {
                 a.z()..=b.z()
             } else {
                 b.z()..=a.z()
-            }
-            .into(),
-        }
+            },
+        )
     }
 
     pub fn merge(box0: &Self, box1: &Self) -> Self {
-        Self {
-            x: Interval::merge(&box0.x, &box1.x),
-            y: Interval::merge(&box0.y, &box1.y),
-            z: Interval::merge(&box0.z, &box1.z),
-        }
+        Self::new(
+            Interval::merge(&box0.x, &box1.x),
+            Interval::merge(&box0.y, &box1.y),
+            Interval::merge(&box0.z, &box1.z),
+        )
     }
 
     pub fn hit(&self, ray: &Ray, ray_t: &Interval) -> bool {

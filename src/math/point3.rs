@@ -11,6 +11,10 @@ impl Point3 {
         Self(Vec3::new(x, y, z))
     }
 
+    pub fn as_vec3(&self) -> &Vec3 {
+        &self.0
+    }
+
     pub fn origin() -> Self {
         Self(Vec3::zero())
     }

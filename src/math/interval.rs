@@ -45,10 +45,18 @@ impl Interval {
     }
 
     #[must_use]
-    pub fn expand(&self, delta: f64) -> Interval {
+    pub fn expand(self, delta: f64) -> Interval {
         let padding = delta / 2.0;
         Interval {
             r: self.r.start() - padding..=self.r.end() + padding,
+        }
+    }
+
+    pub fn expand_if_smaller_than(self, delta: f64) -> Interval {
+        if self.size() < delta {
+            self.expand(delta)
+        } else {
+            self
         }
     }
 }

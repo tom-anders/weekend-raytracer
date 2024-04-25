@@ -5,7 +5,7 @@ use clap::Parser;
 use rand::{thread_rng, Rng};
 use weekend_raytracer::{
     color::Color,
-    hittables::{BvhNode, Hittable, Sphere},
+    hittables::{BvhNode, Hittable, Quad, Sphere},
     material::{Dielectric, Lambertian, Material, Metal},
     math::{Point3, Vec3},
     texture::{CheckerTexture, Image, Noise},
@@ -23,7 +23,8 @@ enum Scene {
     BouncingSpheres,
     CheckeredSpheres,
     Earth,
-    PerlinSpheres
+    PerlinSpheres,
+    Quads,
 }
 
 impl Scene {
@@ -143,8 +144,16 @@ impl Scene {
             }
             Self::PerlinSpheres => {
                 let perlin_text = Noise::new(4.0);
-                world.push(Sphere::stationary(Point3::new(0, -1000, 0), 1000.0, Lambertian::new(perlin_text.clone())));
-                world.push(Sphere::stationary(Point3::new(0, 2, 0), 2.0, Lambertian::new(perlin_text.clone())));
+                world.push(Sphere::stationary(
+                    Point3::new(0, -1000, 0),
+                    1000.0,
+                    Lambertian::new(perlin_text.clone()),
+                ));
+                world.push(Sphere::stationary(
+                    Point3::new(0, 2, 0),
+                    2.0,
+                    Lambertian::new(perlin_text.clone()),
+                ));
 
                 camera
                     .aspect_ratio(16.0 / 9.0)
@@ -153,6 +162,54 @@ impl Scene {
                     .max_depth(50)
                     .vfov_degrees(20.0)
                     .look_from(Point3::new(13, 2, 3))
+                    .look_at(Point3::new(0, 0, 0))
+                    .v_up(Vec3::new(0, 1, 0));
+            }
+            Self::Quads => {
+                let left_red = Lambertian::new(Color::new(1.0, 0.2, 0.2));
+                let back_green = Lambertian::new(Color::new(0.2, 1.0, 0.2));
+                let right_blue = Lambertian::new(Color::new(0.2, 0.2, 1.0));
+                let upper_orange = Lambertian::new(Color::new(1.0, 0.5, 0.0));
+                let lower_teal = Lambertian::new(Color::new(0.2, 0.8, 0.8));
+
+                world.push(Quad::new(
+                    Point3::new(-3, -2, 5),
+                    Vec3::new(0, 0, -4),
+                    Vec3::new(0, 4, 0),
+                    left_red,
+                ));
+                world.push(Quad::new(
+                    Point3::new(-2, -2, 0),
+                    Vec3::new(4, 0, 0),
+                    Vec3::new(0, 4, 0),
+                    back_green,
+                ));
+                world.push(Quad::new(
+                    Point3::new(3, -2, 1),
+                    Vec3::new(0, 0, 4),
+                    Vec3::new(0, 4, 0),
+                    right_blue,
+                ));
+                world.push(Quad::new(
+                    Point3::new(-2, 3, 1),
+                    Vec3::new(4, 0, 0),
+                    Vec3::new(0, 0, 4),
+                    upper_orange,
+                ));
+                world.push(Quad::new(
+                    Point3::new(-2, -3, 5),
+                    Vec3::new(4, 0, 0),
+                    Vec3::new(0, 0, -4),
+                    lower_teal,
+                ));
+
+                camera
+                    .aspect_ratio(1.0)
+                    .image_width(400)
+                    .samples_per_pixel(100)
+                    .max_depth(50)
+                    .vfov_degrees(80.0)
+                    .look_from(Point3::new(0, 0, 9))
                     .look_at(Point3::new(0, 0, 0))
                     .v_up(Vec3::new(0, 1, 0));
             }

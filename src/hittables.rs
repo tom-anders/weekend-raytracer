@@ -3,8 +3,12 @@ use crate::{
 };
 
 use enum_dispatch::enum_dispatch;
+
 mod sphere;
 pub use sphere::*;
+
+mod quad;
+pub use quad::*;
 
 mod hittable_list;
 pub use hittable_list::*;
@@ -53,6 +57,7 @@ pub enum Hittable {
     Sphere(Sphere),
     List(HittableList),
     BvhNode(BvhNode),
+    Quad(Quad),
 }
 
 #[enum_dispatch(Hittable)]
