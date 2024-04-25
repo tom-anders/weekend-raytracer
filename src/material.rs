@@ -6,15 +6,15 @@ use crate::{
 };
 
 #[derive(Debug, Clone)]
-#[enum_dispatch]
+#[enum_dispatch(Scatter)]
 pub enum Material {
     Lambertian(Lambertian),
     Metal(Metal),
     Dielectric(Dielectric),
 }
 
-#[enum_dispatch(Material)]
-trait Scatter {
+#[enum_dispatch]
+pub trait Scatter {
     fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay>;
 }
 
@@ -105,16 +105,6 @@ impl ScatteredRay {
         Self {
             attenuation,
             ray: Ray::new(hit_record.p, direction, time),
-        }
-    }
-}
-
-impl Material {
-    pub fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord) -> Option<ScatteredRay> {
-        match self {
-            Material::Lambertian(l) => l.scatter(ray_in, hit_record),
-            Material::Metal(m) => m.scatter(ray_in, hit_record),
-            Material::Dielectric(d) => d.scatter(ray_in, hit_record),
         }
     }
 }

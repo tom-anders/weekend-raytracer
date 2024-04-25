@@ -2,9 +2,7 @@ use rand::{thread_rng, Rng};
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 
 use crate::{
-    color::Color,
-    hittables::Hit,
-    math::{cross, Point3, Ray, Vec3},
+    color::Color, hittables::Hit, material::Scatter, math::{cross, Point3, Ray, Vec3}
 };
 
 #[derive(Debug, Clone, derive_builder::Builder)]
