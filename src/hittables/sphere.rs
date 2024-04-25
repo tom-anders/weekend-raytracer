@@ -50,10 +50,12 @@ impl Sphere {
         }
     }
 
-    // TODO right now it seems more readable to me to inline the `if self.is_moving` call here,
-    // but let's first see if the book uses this function at some other point.
-    fn sphere_center(&self, time: f64) -> Point3 {
-        self.center1 + time * self.center_vec
+    fn center_at_time(&self, time: f64) -> Point3 {
+        if self.is_moving {
+            self.center1 + time * self.center_vec
+        } else {
+            self.center1
+        }
     }
 
     fn texture_coords(&self, p: &Point3) -> TextureCoords {
@@ -76,11 +78,7 @@ impl Sphere {
 
 impl Hit for Sphere {
     fn hit(&self, r: &Ray, ray_bounds: &Interval) -> Option<HitRecord> {
-        let center = if self.is_moving {
-            self.sphere_center(r.time())
-        } else {
-            self.center1
-        };
+        let center = self.center_at_time(r.time());
         let oc = center - *r.origin();
         let a = r.direction().length_squared();
         let h = dot(r.direction(), &oc);
