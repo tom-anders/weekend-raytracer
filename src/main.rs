@@ -6,7 +6,7 @@ use rand::{thread_rng, Rng};
 use weekend_raytracer::{
     color::Color,
     hittables::{BvhNode, Hittable, Quad, Sphere},
-    material::{Dielectric, Lambertian, Material, Metal},
+    material::{Dielectric, DiffuseLight, Lambertian, Material, Metal},
     math::{Point3, Vec3},
     texture::{CheckerTexture, Image, Noise},
     {camera::Camera, hittables::HittableList},
@@ -25,6 +25,7 @@ enum Scene {
     Earth,
     PerlinSpheres,
     Quads,
+    SimpleLight,
 }
 
 impl Scene {
@@ -91,6 +92,7 @@ impl Scene {
                 ));
 
                 camera
+                    .background(Color::new(0.70, 0.80, 1.00))
                     .aspect_ratio(16.0 / 9.0)
                     .image_width(400)
                     .samples_per_pixel(100)
@@ -118,6 +120,7 @@ impl Scene {
                 ));
 
                 camera
+                    .background(Color::new(0.70, 0.80, 1.00))
                     .aspect_ratio(16.0 / 9.0)
                     .image_width(400)
                     .samples_per_pixel(100)
@@ -132,6 +135,7 @@ impl Scene {
                 world.push(Sphere::stationary(Point3::new(0, 0, 0), 2.0, earth_texture));
 
                 camera
+                    .background(Color::new(0.70, 0.80, 1.00))
                     .aspect_ratio(16.0 / 9.0)
                     .image_width(400)
                     .samples_per_pixel(100)
@@ -156,6 +160,7 @@ impl Scene {
                 ));
 
                 camera
+                    .background(Color::new(0.70, 0.80, 1.00))
                     .aspect_ratio(16.0 / 9.0)
                     .image_width(400)
                     .samples_per_pixel(100)
@@ -204,6 +209,7 @@ impl Scene {
                 ));
 
                 camera
+                    .background(Color::new(0.70, 0.80, 1.00))
                     .aspect_ratio(1.0)
                     .image_width(400)
                     .samples_per_pixel(100)
@@ -211,6 +217,38 @@ impl Scene {
                     .vfov_degrees(80.0)
                     .look_from(Point3::new(0, 0, 9))
                     .look_at(Point3::new(0, 0, 0))
+                    .v_up(Vec3::new(0, 1, 0));
+            }
+            Self::SimpleLight => {
+                let pertext = Lambertian::new(Noise::new(4.0));
+                world.push(Sphere::stationary(
+                    Point3::new(0, -1000, 0),
+                    1000.0,
+                    pertext.clone(),
+                ));
+                world.push(Sphere::stationary(
+                    Point3::new(0, 2, 0),
+                    2.0,
+                    pertext.clone(),
+                ));
+
+                let difflight = DiffuseLight::new(Color::new(4.0, 4.0, 4.0));
+                world.push(Quad::new(
+                    Point3::new(3, 1, -2),
+                    Vec3::new(2, 0, 0),
+                    Vec3::new(0, 2, 0),
+                    difflight.clone(),
+                ));
+                world.push(Sphere::stationary(Point3::new(0, 7, 0), 2.0, difflight));
+
+                camera
+                    .aspect_ratio(16.0 / 9.0)
+                    .image_width(400)
+                    .samples_per_pixel(100)
+                    .max_depth(50)
+                    .vfov_degrees(20.0)
+                    .look_from(Point3::new(26, 3, 6))
+                    .look_at(Point3::new(0, 2, 0))
                     .v_up(Vec3::new(0, 1, 0));
             }
         }

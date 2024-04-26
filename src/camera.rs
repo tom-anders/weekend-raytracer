@@ -2,7 +2,10 @@ use rand::{thread_rng, Rng};
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 
 use crate::{
-    color::Color, hittables::Hit, material::ScatterAndEmit, math::{cross, Point3, Ray, Vec3}
+    color::Color,
+    hittables::Hit,
+    material::ScatterAndEmit,
+    math::{cross, Point3, Ray, Vec3},
 };
 
 #[derive(Debug, Clone, derive_builder::Builder)]
@@ -28,6 +31,9 @@ pub struct CameraParams {
     look_from: Point3,
     #[builder(setter, default = "None")]
     defocus_angle: Option<f64>,
+
+    #[builder(setter, default = "Color::black()")]
+    background: Color,
 }
 
 #[derive(Debug, Clone)]
@@ -57,6 +63,8 @@ pub struct Camera {
     pixel_delta_v: Vec3,
 
     defocus_disk: Option<DefocusDisk>,
+
+    background: Color,
 }
 
 impl CameraParamsBuilder {
@@ -105,6 +113,7 @@ impl CameraParamsBuilder {
             pixel_delta_u,
             pixel_delta_v,
             defocus_disk,
+            background: params.background,
         }
     }
 }
@@ -126,14 +135,18 @@ impl Camera {
 
         let mut colors = Vec::with_capacity(self.image_width);
         for j in 0..self.image_height {
-            write!(progress, "\rScanlines remaining: {} ", self.image_height - j)?;
+            write!(
+                progress,
+                "\rScanlines remaining: {} ",
+                self.image_height - j
+            )?;
             (0..self.image_width)
                 .into_par_iter()
                 .map(|i| {
                     self.pixel_samples_scale
                         * std::iter::repeat_with(|| self.get_ray(i, j))
                             .take(self.samples_per_pixel)
-                            .map(|ray| Self::ray_color(&ray, self.max_depth, world))
+                            .map(|ray| self.ray_color(&ray, self.max_depth, world))
                             .sum::<Color>()
                 })
                 .collect_into_vec(&mut colors);
@@ -169,19 +182,24 @@ impl Camera {
         Vec3::new(rng.gen_range(-0.5..=0.5), rng.gen_range(-0.5..=0.5), 0.0)
     }
 
-    fn ray_color(r: &Ray, depth: i32, world: &impl Hit) -> Color {
+    fn ray_color(&self, r: &Ray, depth: i32, world: &impl Hit) -> Color {
         if depth <= 0 {
             return Color::black();
         }
         if let Some(hit_record) = world.hit(r, &(0.001..=f64::INFINITY).into()) {
-            return if let Some(scattered) = hit_record.material.scatter(r, &hit_record) {
-                scattered.attenuation * Self::ray_color(&scattered.ray, depth - 1, world)
+            let color_from_emission = hit_record
+                .material
+                .emit(&hit_record);
+            if let Some(scattered) = hit_record.material.scatter(r, &hit_record) {
+                let color_from_scatter =
+                    scattered.attenuation * self.ray_color(&scattered.ray, depth - 1, world);
+                color_from_emission + color_from_scatter
             } else {
-                Color::black()
-            };
+                color_from_emission
+            }
+        } else {
+            // If the ray hits nothing, return the background color.
+            self.background
         }
-        let unit_direction = r.direction().normalized();
-        let a = 0.5 * (unit_direction.y + 1.0);
-        (1.0 - a) * Color::new(1.0, 1.0, 1.0) + a * Color::new(0.5, 0.7, 1.0)
     }
 }

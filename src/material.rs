@@ -4,8 +4,8 @@ use rand::{thread_rng, Rng};
 use crate::{
     color::Color,
     hittables::HitRecord,
-    math::{dot, reflect, refract, Point3, Ray, Vec3},
-    texture::{Texture, TextureCoords, TextureValue},
+    math::{dot, reflect, refract, Ray, Vec3},
+    texture::{Texture, TextureValue},
 };
 
 #[derive(Debug, Clone)]
@@ -23,7 +23,7 @@ pub trait ScatterAndEmit {
         None
     }
 
-    fn emit(&self, _coords: &TextureCoords, _p: Point3) -> Color {
+    fn emit(&self, _hit_record: &HitRecord) -> Color {
         Color::black()
     }
 }
@@ -119,8 +119,8 @@ impl DiffuseLight {
 }
 
 impl ScatterAndEmit for DiffuseLight {
-    fn emit(&self, coords: &TextureCoords, p: Point3) -> Color {
-        self.texture.value(coords, p)
+    fn emit(&self, hit_record: &HitRecord) -> Color {
+        self.texture.value(&hit_record.texture_coords, hit_record.p)
     }
 }
 
