@@ -13,8 +13,7 @@ pub struct BvhNode {
 
 impl BvhNode {
     pub fn new(mut objects: Vec<Hittable>) -> Self {
-        let bbox = objects.iter()
-            .fold(Aabb::empty(), |acc, o| Aabb::merge(&acc, o.bounding_box()));
+        let bbox: Aabb = objects.iter().map(|o| o.bounding_box()).collect();
 
         let axis = bbox.longest_axis();
 

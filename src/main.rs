@@ -26,6 +26,7 @@ enum Scene {
     PerlinSpheres,
     Quads,
     SimpleLight,
+    CornellBox,
 }
 
 impl Scene {
@@ -248,6 +249,62 @@ impl Scene {
                     .vfov_degrees(20.0)
                     .look_from(Point3::new(26, 3, 6))
                     .look_at(Point3::new(0, 2, 0))
+                    .v_up(Vec3::new(0, 1, 0))
+            }
+            Self::CornellBox => {
+                let red = Lambertian::new(Color::new(0.65, 0.05, 0.05));
+                let white = Lambertian::new(Color::new(0.73, 0.73, 0.73));
+                let green = Lambertian::new(Color::new(0.12, 0.45, 0.15));
+                let light = DiffuseLight::new(Color::new(15.0, 15.0, 15.0));
+
+                world.push(Quad::new(
+                    Point3::new(555, 0, 0),
+                    Vec3::new(0, 555, 0),
+                    Vec3::new(0, 0, 555),
+                    green,
+                ));
+                world.push(Quad::new(
+                    Point3::new(0, 0, 0),
+                    Vec3::new(0, 555, 0),
+                    Vec3::new(0, 0, 555),
+                    red,
+                ));
+                world.push(Quad::new(
+                    Point3::new(343, 554, 332),
+                    Vec3::new(-130, 0, 0),
+                    Vec3::new(0, 0, -105),
+                    light,
+                ));
+                world.push(Quad::new(
+                    Point3::new(0, 0, 0),
+                    Vec3::new(555, 0, 0),
+                    Vec3::new(0, 0, 555),
+                    white.clone(),
+                ));
+                world.push(Quad::new(
+                    Point3::new(555, 555, 555),
+                    Vec3::new(-555, 0, 0),
+                    Vec3::new(0, 0, -555),
+                    white.clone(),
+                ));
+                world.push(Quad::new(
+                    Point3::new(0, 0, 555),
+                    Vec3::new(555, 0, 0),
+                    Vec3::new(0, 555, 0),
+                    white.clone(),
+                ));
+
+                world.push(Quad::make_box(Point3::new(130, 0, 65), Point3::new(295, 165, 230), white.clone()));
+                world.push(Quad::make_box(Point3::new(265, 0, 295), Point3::new(430, 330, 460), white.clone()));
+
+                Camera::builder()
+                    .aspect_ratio(1.0)
+                    .image_width(600)
+                    .samples_per_pixel(200)
+                    .max_depth(50)
+                    .vfov_degrees(40.0)
+                    .look_from(Point3::new(278, 278, -800))
+                    .look_at(Point3::new(278, 278, 0))
                     .v_up(Vec3::new(0, 1, 0))
             }
         };

@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use super::{Interval, Point3, Ray};
 
 /// Axis-aligned bounding box
@@ -54,14 +56,6 @@ impl Aabb {
         )
     }
 
-    pub fn merge(box0: &Self, box1: &Self) -> Self {
-        Self::new(
-            Interval::merge(&box0.x, &box1.x),
-            Interval::merge(&box0.y, &box1.y),
-            Interval::merge(&box0.z, &box1.z),
-        )
-    }
-
     pub fn hit(&self, ray: &Ray, ray_t: &Interval) -> bool {
         let ray_orig = ray.origin();
         let ray_dir = ray.direction();
@@ -106,5 +100,17 @@ impl Aabb {
         } else {
             Axis::Z
         }
+    }
+}
+
+impl<BorrowedBbox: Borrow<Aabb>> FromIterator<BorrowedBbox> for Aabb {
+    fn from_iter<T: IntoIterator<Item = BorrowedBbox>>(iter: T) -> Self {
+        iter.into_iter().fold(Self::empty(), |acc, bbox| {
+            Self::new(
+            Interval::merge(&acc.x, &bbox.borrow().x),
+            Interval::merge(&acc.y, &bbox.borrow().y),
+            Interval::merge(&acc.z, &bbox.borrow().z),
+            )
+        })
     }
 }
