@@ -1,9 +1,10 @@
 use criterion::{criterion_group, criterion_main, Criterion};
+use indicatif::ProgressDrawTarget;
 use rand::{thread_rng, Rng};
 use weekend_raytracer::{
     camera::Camera,
     color::Color,
-    hittables::{HittableList, Sphere, BvhNode},
+    hittables::{BvhNode, HittableList, Sphere},
     material::{Dielectric, Lambertian, Material, Metal},
     math::{Point3, Vec3},
 };
@@ -77,10 +78,11 @@ fn sphere(c: &mut Criterion) {
         .v_up(Vec3::new(0, 1, 0))
         .defocus_angle(Some(0.6))
         .focus_dist(10.0)
+        .progress_draw_target(ProgressDrawTarget::hidden())
         .build();
 
     c.bench_function("Render cover image of book 1", |b| {
-        b.iter(|| camera.render(&world, &mut std::io::sink(), &mut std::io::sink()).unwrap())
+        b.iter(|| camera.render(&world, &mut std::io::sink()).unwrap())
     });
 }
 

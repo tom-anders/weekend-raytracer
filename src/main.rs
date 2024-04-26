@@ -30,9 +30,8 @@ enum Scene {
 
 impl Scene {
     fn create(&self) -> Result<(Camera, Hittable)> {
-        let mut camera = Camera::builder();
         let mut world = HittableList::default();
-        match self {
+        let camera = match self {
             Self::BouncingSpheres => {
                 let checker =
                     CheckerTexture::new(0.32, Color::new(0.2, 0.3, 0.1), Color::new(0.9, 0.9, 0.9));
@@ -91,7 +90,7 @@ impl Scene {
                     Metal::new(Color::new(0.7, 0.6, 0.5), 0.0),
                 ));
 
-                camera
+                Camera::builder()
                     .background(Color::new(0.70, 0.80, 1.00))
                     .aspect_ratio(16.0 / 9.0)
                     .image_width(400)
@@ -102,7 +101,7 @@ impl Scene {
                     .look_at(Point3::new(0, 0, 0))
                     .v_up(Vec3::new(0, 1, 0))
                     .defocus_angle(Some(0.6))
-                    .focus_dist(10.0);
+                    .focus_dist(10.0)
             }
             Self::CheckeredSpheres => {
                 let checker =
@@ -119,7 +118,7 @@ impl Scene {
                     Lambertian::new(checker.clone()),
                 ));
 
-                camera
+                Camera::builder()
                     .background(Color::new(0.70, 0.80, 1.00))
                     .aspect_ratio(16.0 / 9.0)
                     .image_width(400)
@@ -128,13 +127,13 @@ impl Scene {
                     .vfov_degrees(20.0)
                     .look_from(Point3::new(13, 2, 3))
                     .look_at(Point3::new(0, 0, 0))
-                    .defocus_angle(None);
+                    .defocus_angle(None)
             }
             Self::Earth => {
                 let earth_texture = Lambertian::new(Image::new(Path::new("res/earthmap.jpg"))?);
                 world.push(Sphere::stationary(Point3::new(0, 0, 0), 2.0, earth_texture));
 
-                camera
+                Camera::builder()
                     .background(Color::new(0.70, 0.80, 1.00))
                     .aspect_ratio(16.0 / 9.0)
                     .image_width(400)
@@ -144,7 +143,7 @@ impl Scene {
                     .look_from(Point3::new(0, 0, 12))
                     .look_at(Point3::new(0, 0, 0))
                     .v_up(Vec3::new(0, 1, 0))
-                    .defocus_angle(Some(0.6));
+                    .defocus_angle(Some(0.6))
             }
             Self::PerlinSpheres => {
                 let perlin_text = Noise::new(4.0);
@@ -159,7 +158,7 @@ impl Scene {
                     Lambertian::new(perlin_text.clone()),
                 ));
 
-                camera
+                Camera::builder()
                     .background(Color::new(0.70, 0.80, 1.00))
                     .aspect_ratio(16.0 / 9.0)
                     .image_width(400)
@@ -168,7 +167,7 @@ impl Scene {
                     .vfov_degrees(20.0)
                     .look_from(Point3::new(13, 2, 3))
                     .look_at(Point3::new(0, 0, 0))
-                    .v_up(Vec3::new(0, 1, 0));
+                    .v_up(Vec3::new(0, 1, 0))
             }
             Self::Quads => {
                 let left_red = Lambertian::new(Color::new(1.0, 0.2, 0.2));
@@ -208,7 +207,7 @@ impl Scene {
                     lower_teal,
                 ));
 
-                camera
+                Camera::builder()
                     .background(Color::new(0.70, 0.80, 1.00))
                     .aspect_ratio(1.0)
                     .image_width(400)
@@ -217,7 +216,7 @@ impl Scene {
                     .vfov_degrees(80.0)
                     .look_from(Point3::new(0, 0, 9))
                     .look_at(Point3::new(0, 0, 0))
-                    .v_up(Vec3::new(0, 1, 0));
+                    .v_up(Vec3::new(0, 1, 0))
             }
             Self::SimpleLight => {
                 let pertext = Lambertian::new(Noise::new(4.0));
@@ -241,7 +240,7 @@ impl Scene {
                 ));
                 world.push(Sphere::stationary(Point3::new(0, 7, 0), 2.0, difflight));
 
-                camera
+                Camera::builder()
                     .aspect_ratio(16.0 / 9.0)
                     .image_width(400)
                     .samples_per_pixel(100)
@@ -249,9 +248,9 @@ impl Scene {
                     .vfov_degrees(20.0)
                     .look_from(Point3::new(26, 3, 6))
                     .look_at(Point3::new(0, 2, 0))
-                    .v_up(Vec3::new(0, 1, 0));
+                    .v_up(Vec3::new(0, 1, 0))
             }
-        }
+        };
         Ok((
             camera.build(),
             BvhNode::new(world.into_iter().collect()).into(),
@@ -264,7 +263,7 @@ fn main() -> Result<()> {
 
     let (camera, world) = args.scene.create()?;
 
-    camera.render(&world, &mut std::io::stdout(), &mut std::io::stderr())?;
+    camera.render(&world, &mut std::io::stdout())?;
 
     Ok(())
 }

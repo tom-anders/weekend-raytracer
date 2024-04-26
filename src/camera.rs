@@ -1,3 +1,4 @@
+use indicatif::{ProgressBar, ProgressDrawTarget, ProgressIterator};
 use rand::{thread_rng, Rng};
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 
@@ -8,8 +9,8 @@ use crate::{
     math::{cross, Point3, Ray, Vec3},
 };
 
-#[derive(Debug, Clone, derive_builder::Builder)]
-#[builder(build_fn(private, name = "build_private"))]
+#[derive(Debug, derive_builder::Builder)]
+#[builder(pattern = "owned", build_fn(private, name = "build_private"))]
 pub struct CameraParams {
     #[builder(default = "1.0")]
     aspect_ratio: f64,
@@ -34,6 +35,9 @@ pub struct CameraParams {
 
     #[builder(setter, default = "Color::black()")]
     background: Color,
+
+    #[builder(setter, default = "ProgressDrawTarget::stderr()")]
+    progress_draw_target: ProgressDrawTarget,
 }
 
 #[derive(Debug, Clone)]
@@ -65,10 +69,12 @@ pub struct Camera {
     defocus_disk: Option<DefocusDisk>,
 
     background: Color,
+
+    progress_bar: ProgressBar,
 }
 
 impl CameraParamsBuilder {
-    pub fn build(&self) -> Camera {
+    pub fn build(self) -> Camera {
         let params = self.build_private().unwrap();
 
         let image_height = ((params.image_width as f64 / params.aspect_ratio) as usize).max(1);
@@ -114,6 +120,8 @@ impl CameraParamsBuilder {
             pixel_delta_v,
             defocus_disk,
             background: params.background,
+
+            progress_bar: ProgressBar::with_draw_target(Some(image_height as u64), params.progress_draw_target),
         }
     }
 }
@@ -127,19 +135,13 @@ impl Camera {
         &self,
         world: &impl Hit,
         output: &mut impl std::io::Write,
-        progress: &mut impl std::io::Write,
     ) -> std::io::Result<()> {
         writeln!(output, "P3")?;
         writeln!(output, "{} {}", self.image_width, self.image_height)?;
         writeln!(output, "255")?;
 
         let mut colors = Vec::with_capacity(self.image_width);
-        for j in 0..self.image_height {
-            write!(
-                progress,
-                "\rScanlines remaining: {} ",
-                self.image_height - j
-            )?;
+        for j in (0..self.image_height).progress_with(self.progress_bar.clone()) {
             (0..self.image_width)
                 .into_par_iter()
                 .map(|i| {
@@ -187,9 +189,7 @@ impl Camera {
             return Color::black();
         }
         if let Some(hit_record) = world.hit(r, &(0.001..=f64::INFINITY).into()) {
-            let color_from_emission = hit_record
-                .material
-                .emit(&hit_record);
+            let color_from_emission = hit_record.material.emit(&hit_record);
             if let Some(scattered) = hit_record.material.scatter(r, &hit_record) {
                 let color_from_scatter =
                     scattered.attenuation * self.ray_color(&scattered.ray, depth - 1, world);
