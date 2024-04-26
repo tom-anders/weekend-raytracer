@@ -46,7 +46,7 @@ impl Sphere {
             material: material.into(),
             is_moving: true,
             center_vec: center2 - center1,
-            bbox: [bbox1, bbox2].into_iter().collect(),
+            bbox: Aabb::merge([bbox1, bbox2]),
         }
     }
 

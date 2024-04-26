@@ -13,7 +13,7 @@ pub struct HittableList {
 impl HittableList {
     pub fn push(&mut self, hittable: impl Into<Hittable>) {
         let hittable = hittable.into();
-        self.bbox = Aabb::from_iter([&self.bbox, hittable.bounding_box()]);
+        self.bbox = Aabb::merge([&self.bbox, hittable.bounding_box()]);
         self.objects.push(hittable);
     }
 }
@@ -34,7 +34,7 @@ impl Hit for HittableList {
 impl<IntoHittable: Into<Hittable>> FromIterator<IntoHittable> for HittableList {
     fn from_iter<T: IntoIterator<Item = IntoHittable>>(iter: T) -> Self {
         let objects = iter.into_iter().map(Into::into).collect_vec();
-        let bbox = objects.iter().map(|o| o.bounding_box()).collect();
+        let bbox = Aabb::merge(objects.iter().map(|o| o.bounding_box()));
         Self { objects, bbox }
     }
 }

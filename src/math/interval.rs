@@ -1,4 +1,5 @@
 use core::f64;
+use std::ops::Add;
 
 #[derive(Debug, Clone, derive_more::From)]
 pub struct Interval {
@@ -36,6 +37,10 @@ impl Interval {
         *self.r.end()
     }
 
+    pub fn include(&mut self, x: f64) {
+        self.r = (self.r.start().min(x))..=(self.r.end().max(x))
+    }
+
     pub fn contains(&self, x: f64) -> bool {
         self.r.contains(&x)
     }
@@ -64,5 +69,13 @@ impl Interval {
 impl Default for Interval {
     fn default() -> Self {
         Self::empty()
+    }
+}
+
+impl Add<f64> for Interval {
+    type Output = Self;
+
+    fn add(self, displacement: f64) -> Self::Output {
+        (self.min() + displacement..=self.max() + displacement).into()
     }
 }

@@ -5,7 +5,7 @@ use clap::Parser;
 use rand::{thread_rng, Rng};
 use weekend_raytracer::{
     color::Color,
-    hittables::{BvhNode, Hittable, Quad, Sphere},
+    hittables::{BvhNode, Hittable, Quad, Sphere, Instance},
     material::{Dielectric, DiffuseLight, Lambertian, Material, Metal},
     math::{Point3, Vec3},
     texture::{CheckerTexture, Image, Noise},
@@ -294,8 +294,25 @@ impl Scene {
                     white.clone(),
                 ));
 
-                world.push(Quad::make_box(Point3::new(130, 0, 65), Point3::new(295, 165, 230), white.clone()));
-                world.push(Quad::make_box(Point3::new(265, 0, 295), Point3::new(430, 330, 460), white.clone()));
+                world.push(
+                    Hittable::from(Quad::make_box(
+                        Point3::origin(),
+                        Point3::new(165, 330, 165),
+                        white.clone(),
+                    ))
+                    .rotate_y(15.0)
+                    .translate(Vec3::new(265, 0, 295)),
+                );
+
+                world.push(
+                    Hittable::from(Quad::make_box(
+                        Point3::origin(),
+                        Point3::new(165, 165, 165),
+                        white.clone(),
+                    ))
+                    .rotate_y(-18.0)
+                    .translate(Vec3::new(130, 0, 65)),
+                );
 
                 Camera::builder()
                     .aspect_ratio(1.0)

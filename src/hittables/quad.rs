@@ -35,7 +35,7 @@ impl Quad {
             v,
             w: n / dot(&n, &n),
             material: material.into(),
-            bbox: Aabb::from_iter([bbox_diagonal1, bbox_diagonal2]),
+            bbox: Aabb::merge([bbox_diagonal1, bbox_diagonal2]),
             normal,
             D,
         }

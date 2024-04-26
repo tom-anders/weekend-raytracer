@@ -1,4 +1,4 @@
-use std::ops::{Add, Index, Mul, Sub};
+use std::ops::{Add, AddAssign, Index, Mul, Sub};
 
 use super::Vec3;
 
@@ -9,6 +9,10 @@ pub struct Point3(Vec3);
 impl Point3 {
     pub fn new(x: impl Into<f64>, y: impl Into<f64>, z: impl Into<f64>) -> Self {
         Self(Vec3::new(x, y, z))
+    }
+
+    pub fn from_vec3(v: Vec3) -> Self {
+        Self(v)
     }
 
     pub fn as_vec3(&self) -> &Vec3 {
@@ -48,6 +52,12 @@ impl Add<Vec3> for Point3 {
     }
 }
 
+impl AddAssign<Vec3> for Point3 {
+    fn add_assign(&mut self, rhs: Vec3) {
+        self.0 += rhs;
+    }
+}
+
 impl Sub<Vec3> for Point3 {
     type Output = Point3;
 
@@ -63,7 +73,6 @@ impl Mul<Point3> for f64 {
         Point3(self * rhs.0)
     }
 }
-
 
 impl Index<usize> for Point3 {
     type Output = f64;

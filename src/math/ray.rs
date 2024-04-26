@@ -25,4 +25,8 @@ impl Ray {
     pub fn time(&self) -> f64 {
         self.time
     }
+
+    pub fn offset(&self, offset: Vec3) -> Self {
+        Self::new(self.origin - offset, self.direction, self.time)
+    }
 }

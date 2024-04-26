@@ -1,20 +1,13 @@
-use std::borrow::Borrow;
+use std::{borrow::Borrow, ops::Add};
 
-use super::{Interval, Point3, Ray};
+use super::{Axis, Interval, Point3, Ray, Vec3};
 
 /// Axis-aligned bounding box
 #[derive(Debug, Default, Clone)]
 pub struct Aabb {
-    x: Interval,
-    y: Interval,
-    z: Interval,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum Axis {
-    X,
-    Y,
-    Z,
+    pub x: Interval,
+    pub y: Interval,
+    pub z: Interval,
 }
 
 impl Aabb {
@@ -36,6 +29,12 @@ impl Aabb {
         }
     }
 
+    pub fn include(&mut self, p: Point3) {
+        self.x.include(p.x());
+        self.y.include(p.y());
+        self.z.include(p.z());
+    }
+
     pub fn from_points(a: Point3, b: Point3) -> Self {
         Self::new(
             if a.x() < b.x() {
@@ -54,6 +53,16 @@ impl Aabb {
                 b.z()..=a.z()
             },
         )
+    }
+
+    pub fn merge<BorrowSelf: Borrow<Self>, T: IntoIterator<Item = BorrowSelf>>(iter: T) -> Self {
+        iter.into_iter().fold(Self::empty(), |acc, bbox| {
+            Self::new(
+                Interval::merge(&acc.x, &bbox.borrow().x),
+                Interval::merge(&acc.y, &bbox.borrow().y),
+                Interval::merge(&acc.z, &bbox.borrow().z),
+            )
+        })
     }
 
     pub fn hit(&self, ray: &Ray, ray_t: &Interval) -> bool {
@@ -103,14 +112,21 @@ impl Aabb {
     }
 }
 
-impl<BorrowedBbox: Borrow<Aabb>> FromIterator<BorrowedBbox> for Aabb {
-    fn from_iter<T: IntoIterator<Item = BorrowedBbox>>(iter: T) -> Self {
-        iter.into_iter().fold(Self::empty(), |acc, bbox| {
-            Self::new(
-            Interval::merge(&acc.x, &bbox.borrow().x),
-            Interval::merge(&acc.y, &bbox.borrow().y),
-            Interval::merge(&acc.z, &bbox.borrow().z),
-            )
-        })
+impl FromIterator<Point3> for Aabb {
+    fn from_iter<T: IntoIterator<Item = Point3>>(iter: T) -> Self {
+        let bbox = iter.into_iter().fold(Self::empty(), |mut acc, p| {
+            acc.include(p);
+            acc
+        });
+        // Call constructor to ensure expand_if_smaller_than(delta) is called
+        Self::new(bbox.x, bbox.y, bbox.z)
+    }
+}
+
+impl Add<Vec3> for Aabb {
+    type Output = Aabb;
+
+    fn add(self, rhs: Vec3) -> Self::Output {
+        Aabb::new(self.x + rhs.x, self.y + rhs.y, self.z + rhs.z)
     }
 }
