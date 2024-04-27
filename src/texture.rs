@@ -24,7 +24,7 @@ impl From<Color> for Texture {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct TextureCoords {
     pub u: f64,
     pub v: f64,

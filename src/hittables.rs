@@ -22,6 +22,9 @@ pub use translate::*;
 mod rotate;
 pub use rotate::*;
 
+mod constant_medium;
+pub use constant_medium::*;
+
 #[derive(Debug, Clone)]
 pub struct HitRecord<'a> {
     pub p: Point3,
@@ -71,6 +74,7 @@ pub enum Hittable {
     Quad(Quad),
     Translate(Translate),
     Rotate(Rotate),
+    ConstantMedium(ConstantMedium),
 }
 
 #[enum_dispatch(Hittable)]

@@ -5,7 +5,7 @@ use clap::Parser;
 use rand::{thread_rng, Rng};
 use weekend_raytracer::{
     color::Color,
-    hittables::{BvhNode, Hittable, Quad, Sphere, Instance},
+    hittables::{BvhNode, ConstantMedium, Hittable, Instance, Quad, Sphere},
     material::{Dielectric, DiffuseLight, Lambertian, Material, Metal},
     math::{Point3, Vec3},
     texture::{CheckerTexture, Image, Noise},
@@ -27,6 +27,7 @@ enum Scene {
     Quads,
     SimpleLight,
     CornellBox,
+    CornellSmoke,
 }
 
 impl Scene {
@@ -313,6 +314,77 @@ impl Scene {
                     .rotate_y(-18.0)
                     .translate(Vec3::new(130, 0, 65)),
                 );
+
+                Camera::builder()
+                    .aspect_ratio(1.0)
+                    .image_width(600)
+                    .samples_per_pixel(200)
+                    .max_depth(50)
+                    .vfov_degrees(40.0)
+                    .look_from(Point3::new(278, 278, -800))
+                    .look_at(Point3::new(278, 278, 0))
+                    .v_up(Vec3::new(0, 1, 0))
+            }
+            Self::CornellSmoke => {
+                let red = Lambertian::new(Color::new(0.65, 0.05, 0.05));
+                let white = Lambertian::new(Color::new(0.73, 0.73, 0.73));
+                let green = Lambertian::new(Color::new(0.12, 0.45, 0.15));
+                let light = DiffuseLight::new(Color::new(7.0, 7.0, 7.0));
+
+                world.push(Quad::new(
+                    Point3::new(555, 0, 0),
+                    Vec3::new(0, 555, 0),
+                    Vec3::new(0, 0, 555),
+                    green,
+                ));
+                world.push(Quad::new(
+                    Point3::new(0, 0, 0),
+                    Vec3::new(0, 555, 0),
+                    Vec3::new(0, 0, 555),
+                    red,
+                ));
+                world.push(Quad::new(
+                    Point3::new(113, 554, 127),
+                    Vec3::new(330, 0, 0),
+                    Vec3::new(0, 0, 305),
+                    light,
+                ));
+                world.push(Quad::new(
+                    Point3::new(0, 0, 0),
+                    Vec3::new(555, 0, 0),
+                    Vec3::new(0, 0, 555),
+                    white.clone(),
+                ));
+                world.push(Quad::new(
+                    Point3::new(555, 555, 555),
+                    Vec3::new(-555, 0, 0),
+                    Vec3::new(0, 0, -555),
+                    white.clone(),
+                ));
+                world.push(Quad::new(
+                    Point3::new(0, 0, 555),
+                    Vec3::new(555, 0, 0),
+                    Vec3::new(0, 555, 0),
+                    white.clone(),
+                ));
+
+                let box1 = Hittable::from(Quad::make_box(
+                    Point3::origin(),
+                    Point3::new(165, 330, 165),
+                    white.clone(),
+                ))
+                .rotate_y(15.0)
+                .translate(Vec3::new(265, 0, 295));
+                world.push(ConstantMedium::new(box1, 0.01, Color::black()));
+
+                let box2 = Hittable::from(Quad::make_box(
+                    Point3::origin(),
+                    Point3::new(165, 165, 165),
+                    white.clone(),
+                ))
+                .rotate_y(-18.0)
+                .translate(Vec3::new(130, 0, 65));
+                world.push(ConstantMedium::new(box2, 0.01, Color::white()));
 
                 Camera::builder()
                     .aspect_ratio(1.0)
