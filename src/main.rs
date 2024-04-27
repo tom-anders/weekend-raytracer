@@ -2,6 +2,7 @@ use std::path::Path;
 
 use anyhow::Result;
 use clap::Parser;
+use itertools::{iproduct, Itertools};
 use rand::{thread_rng, Rng};
 use weekend_raytracer::{
     color::Color,
@@ -28,6 +29,7 @@ enum Scene {
     SimpleLight,
     CornellBox,
     CornellSmoke,
+    FinalScene,
 }
 
 impl Scene {
@@ -393,6 +395,110 @@ impl Scene {
                     .max_depth(50)
                     .vfov_degrees(40.0)
                     .look_from(Point3::new(278, 278, -800))
+                    .look_at(Point3::new(278, 278, 0))
+                    .v_up(Vec3::new(0, 1, 0))
+            }
+            Self::FinalScene => {
+                let ground = Lambertian::new(Color::new(0.48, 0.83, 0.53));
+
+                let boxes_per_side = 20;
+                let boxes1 = iproduct!(0..boxes_per_side, 0..boxes_per_side)
+                    .map(|(i, j)| {
+                        let w = 100.0;
+                        let x0 = -1000.0 + i as f64 * w;
+                        let z0 = -1000.0 + j as f64 * w;
+                        let y0 = 0.0;
+
+                        let x1 = x0 + w;
+                        let y1 = thread_rng().gen_range(1.0..101.0);
+                        let z1 = z0 + w;
+                        Hittable::from(Quad::make_box(
+                            Point3::new(x0, y0, z0),
+                            Point3::new(x1, y1, z1),
+                            ground.clone(),
+                        ))
+                    })
+                    .collect();
+                world.push(BvhNode::new(boxes1));
+
+                let light = DiffuseLight::new(Color::new(7.0, 7.0, 7.0));
+                world.push(Quad::new(
+                    Point3::new(123, 554, 147),
+                    Vec3::new(300, 0, 0),
+                    Vec3::new(0, 0, 265),
+                    light,
+                ));
+
+                let center1 = Point3::new(400, 400, 200);
+                let center2 = center1 + Vec3::new(30, 0, 0);
+                world.push(Sphere::moving(
+                    center1,
+                    center2,
+                    50.0,
+                    Lambertian::new(Color::new(0.7, 0.3, 0.1)),
+                ));
+
+                world.push(Sphere::stationary(
+                    Point3::new(260, 150, 45),
+                    50.0,
+                    Dielectric::new(1.5),
+                ));
+                world.push(Sphere::stationary(
+                    Point3::new(0, 150, 145),
+                    50.0,
+                    Metal::new(Color::new(0.8, 0.8, 0.9), 1.0),
+                ));
+
+                let boundary =
+                    Sphere::stationary(Point3::new(360, 150, 145), 70.0, Dielectric::new(1.5));
+                world.push(boundary.clone());
+                world.push(ConstantMedium::new(
+                    boundary,
+                    0.2,
+                    Color::new(0.2, 0.4, 0.9),
+                ));
+
+                let boundary = Sphere::stationary(Point3::origin(), 5000.0, Dielectric::new(1.5));
+                world.push(ConstantMedium::new(
+                    boundary,
+                    0.0001,
+                    Color::new(1.0, 1.0, 1.0),
+                ));
+
+                world.push(Sphere::stationary(
+                    Point3::new(400, 200, 400),
+                    100.0,
+                    Lambertian::new(Image::new(Path::new("res/earthmap.jpg"))?),
+                ));
+                world.push(Sphere::stationary(
+                    Point3::new(220, 280, 300),
+                    80.0,
+                    Lambertian::new(Noise::new(0.2)),
+                ));
+
+                let white = Lambertian::new(Color::new(0.73, 0.73, 0.73));
+                let boxes2 = (0..1000)
+                    .map(|_| {
+                        Hittable::from(Sphere::stationary(
+                            Point3::from_vec3(Vec3::random(0.0..165.0)),
+                            10.0,
+                            white.clone(),
+                        ))
+                    })
+                    .collect_vec();
+                world.push(
+                    BvhNode::new(boxes2)
+                        .rotate_y(15.0)
+                        .translate(Vec3::new(-100, 270, 395)),
+                );
+
+                Camera::builder()
+                    .aspect_ratio(1.0)
+                    .image_width(400)
+                    .samples_per_pixel(250)
+                    .max_depth(4)
+                    .vfov_degrees(40.0)
+                    .look_from(Point3::new(478, 278, -600))
                     .look_at(Point3::new(278, 278, 0))
                     .v_up(Vec3::new(0, 1, 0))
             }
