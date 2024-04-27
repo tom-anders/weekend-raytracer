@@ -30,13 +30,13 @@ pub trait ScatterAndEmit {
 
 #[derive(Debug, Clone)]
 pub struct Lambertian {
-    texture: Box<Texture>,
+    texture: Texture,
 }
 
 impl Lambertian {
     pub fn new(texture: impl Into<Texture>) -> Self {
         Self {
-            texture: Box::new(texture.into()),
+            texture: texture.into(),
         }
     }
 }
@@ -107,13 +107,13 @@ impl Dielectric {
 
 #[derive(Debug, Clone)]
 pub struct DiffuseLight {
-    texture: Box<Texture>,
+    texture: Texture,
 }
 
 impl DiffuseLight {
     pub fn new(texture: impl Into<Texture>) -> Self {
         Self {
-            texture: Box::new(texture.into()),
+            texture: texture.into(),
         }
     }
 }
