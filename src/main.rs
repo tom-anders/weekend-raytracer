@@ -260,6 +260,7 @@ impl Scene {
                 let green = Lambertian::new(Color::new(0.12, 0.45, 0.15));
                 let light = DiffuseLight::new(Color::new(15.0, 15.0, 15.0));
 
+                // Cornell box sides
                 world.push(Quad::new(
                     Point3::new(555, 0, 0),
                     Vec3::new(0, 555, 0),
@@ -271,12 +272,6 @@ impl Scene {
                     Vec3::new(0, 555, 0),
                     Vec3::new(0, 0, 555),
                     red,
-                ));
-                world.push(Quad::new(
-                    Point3::new(343, 554, 332),
-                    Vec3::new(-130, 0, 0),
-                    Vec3::new(0, 0, -105),
-                    light,
                 ));
                 world.push(Quad::new(
                     Point3::new(0, 0, 0),
@@ -297,6 +292,15 @@ impl Scene {
                     white.clone(),
                 ));
 
+                // Light
+                world.push(Quad::new(
+                    Point3::new(213, 554, 227),
+                    Vec3::new(130, 0, 0),
+                    Vec3::new(0, 0, 105),
+                    light,
+                ));
+
+                // Box1
                 world.push(
                     Hittable::from(Quad::make_box(
                         Point3::origin(),
@@ -307,6 +311,7 @@ impl Scene {
                     .translate(Vec3::new(265, 0, 295)),
                 );
 
+                // Box 2
                 world.push(
                     Hittable::from(Quad::make_box(
                         Point3::origin(),
@@ -320,7 +325,7 @@ impl Scene {
                 Camera::builder()
                     .aspect_ratio(1.0)
                     .image_width(600)
-                    .samples_per_pixel(200)
+                    .samples_per_pixel(64)
                     .max_depth(50)
                     .vfov_degrees(40.0)
                     .look_from(Point3::new(278, 278, -800))

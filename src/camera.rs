@@ -1,4 +1,5 @@
 use indicatif::{ProgressBar, ProgressDrawTarget, ProgressIterator};
+use itertools::iproduct;
 use rand::{thread_rng, Rng};
 use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
 
@@ -57,8 +58,9 @@ impl DefocusDisk {
 pub struct Camera {
     image_width: usize,
     image_height: usize,
-    samples_per_pixel: usize,
     pixel_samples_scale: f64,
+    sqrt_spp: usize,     // Square root of number of samples per pixel
+    recip_sqrt_spp: f64, // 1 / sqrt_spp
     max_depth: i32,
     center: Point3,
 
@@ -107,11 +109,16 @@ impl CameraParamsBuilder {
             }
         });
 
+        let sqrt_spp = f64::sqrt(params.samples_per_pixel as f64) as usize;
+        let pixel_samples_scale = 1.0 / (sqrt_spp * sqrt_spp) as f64;
+        let recip_sqrt_spp = 1.0 / (sqrt_spp as f64);
+
         Camera {
             image_width: params.image_width,
             image_height,
-            samples_per_pixel: params.samples_per_pixel,
-            pixel_samples_scale: 1.0 / params.samples_per_pixel as f64,
+            pixel_samples_scale,
+            sqrt_spp,
+            recip_sqrt_spp,
             max_depth: params.max_depth,
             center: params.look_from,
 
@@ -121,7 +128,10 @@ impl CameraParamsBuilder {
             defocus_disk,
             background: params.background,
 
-            progress_bar: ProgressBar::with_draw_target(Some(image_height as u64), params.progress_draw_target),
+            progress_bar: ProgressBar::with_draw_target(
+                Some(image_height as u64),
+                params.progress_draw_target,
+            ),
         }
     }
 }
@@ -146,8 +156,8 @@ impl Camera {
                 .into_par_iter()
                 .map(|i| {
                     self.pixel_samples_scale
-                        * std::iter::repeat_with(|| self.get_ray(i, j))
-                            .take(self.samples_per_pixel)
+                        * iproduct!((0..self.sqrt_spp), (0..self.sqrt_spp))
+                            .map(|(s_i, s_j)| self.get_ray(i, j, s_i, s_j))
                             .map(|ray| self.ray_color(&ray, self.max_depth, world))
                             .sum::<Color>()
                 })
@@ -160,11 +170,11 @@ impl Camera {
         Ok(())
     }
 
-    fn get_ray(&self, i: usize, j: usize) -> Ray {
-        // Construct a camera ray originating from the defocus disk and directed at randomly sampled
-        // point around the pixel location i, j.
+    fn get_ray(&self, i: usize, j: usize, s_i: usize, s_j: usize) -> Ray {
+        // Construct a camera ray originating from the defocus disk and directed at a randomly
+        // sampled point around the pixel location i, j for stratified sample square s_i, s_j.
 
-        let offset = Self::sample_square();
+        let offset = self.sample_square_stratified(s_i, s_j);
         let pixel_sample = self.pixel00_loc
             + ((i as f64 + offset.x) * self.pixel_delta_u)
             + ((j as f64 + offset.y) * self.pixel_delta_v);
@@ -179,9 +189,14 @@ impl Camera {
         Ray::new(ray_origin, ray_direction, ray_time)
     }
 
-    fn sample_square() -> Vec3 {
-        let mut rng = rand::thread_rng();
-        Vec3::new(rng.gen_range(-0.5..=0.5), rng.gen_range(-0.5..=0.5), 0.0)
+    fn sample_square_stratified(&self, s_i: usize, s_j: usize) -> Vec3 {
+        // Returns the vector to a random point in the square sub-pixel specified by grid
+        // indices s_i and s_j, for an idealized unit square pixel [-.5,-.5] to [+.5,+.5].
+
+        let px = ((s_i as f64 + thread_rng().gen::<f64>()) * self.recip_sqrt_spp) - 0.5;
+        let py = ((s_j as f64 + thread_rng().gen::<f64>()) * self.recip_sqrt_spp) - 0.5;
+
+        Vec3::new(px, py, 0)
     }
 
     fn ray_color(&self, r: &Ray, depth: i32, world: &impl Hit) -> Color {
